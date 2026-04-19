@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. Usuário (Estudante)
+model Student {
+  id       String  @id @default(uuid())
+  name     String
+  email    String  @unique
+  phone    String?
+  hype     Int     @default(0) // Pode ser usado para gamificação do usuário
+  courseId String
+
+  // Relações
+  course Course @relation(fields: [courseId], references: [id])
+  posts  Post[]
+  votes  Vote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Curso
+model Course {
+  id       String  @id @default(uuid())
+  name     String
+  isActive Boolean @default(true)
+
+  // Relações
+  students Student[]
+  subjects SubjectCourse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 3. Matéria (Disciplina)
+model Subject {
+  id       String  @id @default(uuid())
+  name     String
+  isActive Boolean @default(true)
+
+  // Relações
+  courses SubjectCourse[]
+  posts   Post[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 4. Tabela Intermediária (Muitos-para-Muitos entre Curso e Matéria)
+model SubjectCourse {
+  id        String @id @default(uuid())
+  subjectId String
+  courseId  String
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id])
+
+  @@unique([subjectId, courseId]) // Garante que não haja duplicatas da mesma matéria no mesmo curso
+}
+
+// 5. Post (O material compartilhado)
+model Post {
+  id        String  @id @default(uuid())
+  title     String
+  subtitle  String?
+  studentId String
+  subjectId String
+
+  // Relações
+  student     Student      @relation(fields: [studentId], references: [id])
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  attachments Attachment[]
+  votes       Vote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 6. Anexos
+model Attachment {
+  id       String @id @default(uuid())
+  filepath String
+  postId   String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+// 7. Sistema de Votos (Upvote/Downvote)
+model Vote {
+  id        String @id @default(uuid())
+  userId    String
+  postId    String
+  vote_type Int // 1 para Up, -1 para Down
+
+  student Student @relation(fields: [userId], references: [id])
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId]) // Garante que um aluno vote apenas uma vez por post
+}

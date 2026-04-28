@@ -1,0 +1,88 @@
+import { createContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { AuthContextValue, AuthCredentials, AuthUser } from '../types/auth';
+import { signIn as signInRequest, signUp as signUpRequest } from '../services/authService';
+
+const AUTH_STORAGE_KEY = 'nest-backup:auth-session';
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+type AuthProviderProps = {
+	children: ReactNode;
+};
+
+const loadStoredUser = () => {
+	const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+
+	if (!raw) {
+		return null;
+	}
+
+	try {
+		return JSON.parse(raw) as { user: AuthUser; accessToken: string };
+	} catch {
+		return null;
+	}
+};
+
+const AuthProvider = ({ children }: AuthProviderProps) => {
+	const [storedSession] = useState(() => loadStoredUser());
+	const [user, setUser] = useState<AuthUser | null>(storedSession?.user ?? null);
+	const [accessToken, setAccessToken] = useState<string | null>(storedSession?.accessToken ?? null);
+	const [isLoading, setIsLoading] = useState(false);
+
+	useEffect(() => {
+		if (!user || !accessToken) {
+			localStorage.removeItem(AUTH_STORAGE_KEY);
+			return;
+		}
+
+		localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, accessToken }));
+	}, [user, accessToken]);
+
+	const signIn = async (credentials: AuthCredentials) => {
+		setIsLoading(true);
+
+		try {
+			const response = await signInRequest(credentials);
+			setUser(response.user);
+			setAccessToken(response.accessToken);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const signUp = async (data: AuthCredentials & { name: string }) => {
+		setIsLoading(true);
+
+		try {
+			const response = await signUpRequest(data);
+			setUser(response.user);
+			setAccessToken(response.accessToken);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const signOut = () => {
+		setUser(null);
+		setAccessToken(null);
+		localStorage.removeItem(AUTH_STORAGE_KEY);
+	};
+
+	const value = useMemo<AuthContextValue>(
+		() => ({
+			user,
+			accessToken,
+			isAuthenticated: Boolean(user),
+			isLoading,
+			signIn,
+			signUp,
+			signOut,
+		}),
+		[user, accessToken, isLoading],
+	);
+
+	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export { AuthContext, AuthProvider };

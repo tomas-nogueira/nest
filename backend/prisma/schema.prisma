@@ -14,12 +14,12 @@ datasource db {
 
 // 1. Usuário (Estudante)
 model Student {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String  @unique
   passwordHash String
   phone        String?
-  hype         Int      @default(0) // Pode ser usado para gamificação do usuário
+  hype         Int     @default(0) // Pode ser usado para gamificação do usuário
   courseId     String?
 
   // Relações

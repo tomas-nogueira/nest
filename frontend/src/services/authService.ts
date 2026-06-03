@@ -6,22 +6,41 @@ type AuthPayload = {
 	user: AuthUser;
 };
 
+type FormattedAuthResponse = AuthPayload & {
+	message: string;
+};
+
 type MePayload = {
 	user: AuthUser;
 };
 
+const getFirstName = (name: string) => {
+	const [firstName] = name.trim().split(/\s+/);
+	return firstName || 'estudante';
+};
+
 const signIn = async (credentials: AuthCredentials) => {
-	return request<AuthPayload>('/auth/login', {
+	const payload = await request<AuthPayload>('/auth/login', {
 		method: 'POST',
 		body: JSON.stringify(credentials),
 	});
+
+	return {
+		...payload,
+		message: `Login realizado com sucesso. Bem-vindo, ${getFirstName(payload.user.name)}!`,
+	} satisfies FormattedAuthResponse;
 };
 
 const signUp = async (data: AuthCredentials & { name: string }) => {
-	return request<AuthPayload>('/auth/register', {
+	const payload = await request<AuthPayload>('/auth/register', {
 		method: 'POST',
 		body: JSON.stringify(data),
 	});
+
+	return {
+		...payload,
+		message: `Conta criada com sucesso. Bem-vindo, ${getFirstName(payload.user.name)}!`,
+	} satisfies FormattedAuthResponse;
 };
 
 const fetchMe = async (token: string) => {

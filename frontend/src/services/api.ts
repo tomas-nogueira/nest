@@ -3,23 +3,80 @@ import { toast } from 'sonner';
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
 
 type ApiErrorResponse = {
-	message?: string | string[];
+	message?: unknown;
+	error?: unknown;
+	issues?: Array<{ message?: unknown }>;
+};
+
+const FALLBACK_ERROR_MESSAGE = 'Erro inesperado.';
+
+class ApiRequestError extends Error {
+	status: number;
+	payload?: ApiErrorResponse;
+	handled: boolean;
+
+	constructor(message: string, status: number, payload?: ApiErrorResponse) {
+		super(message);
+		this.name = 'ApiRequestError';
+		this.status = status;
+		this.payload = payload;
+		this.handled = false;
+	}
+}
+
+const isNonEmptyString = (value: unknown): value is string => {
+	return typeof value === 'string' && value.trim().length > 0;
+};
+
+const extractMessageFromUnknown = (value: unknown): string | null => {
+	if (isNonEmptyString(value)) {
+		return value;
+	}
+
+	if (Array.isArray(value)) {
+		const joined = value
+			.map((item) => extractMessageFromUnknown(item))
+			.filter((item): item is string => Boolean(item))
+			.join(', ');
+
+		return joined || null;
+	}
+
+	if (value && typeof value === 'object' && 'message' in value) {
+		return extractMessageFromUnknown((value as { message?: unknown }).message);
+	}
+
+	return null;
 };
 
 const getErrorMessage = (payload?: ApiErrorResponse | null) => {
-	if (!payload?.message) {
-		return 'Erro inesperado.';
+	if (!payload) {
+		return FALLBACK_ERROR_MESSAGE;
 	}
 
-	if (Array.isArray(payload.message)) {
-		return payload.message.filter(Boolean).join(', ') || 'Erro inesperado.';
+	const message =
+		extractMessageFromUnknown(payload.message) ??
+		extractMessageFromUnknown(payload.error) ??
+		extractMessageFromUnknown(payload.issues);
+
+	return message ?? FALLBACK_ERROR_MESSAGE;
+};
+
+const notifyApiError = (error: unknown) => {
+	if (error instanceof ApiRequestError) {
+		if (!error.handled) {
+			toast.error(error.message || FALLBACK_ERROR_MESSAGE);
+			error.handled = true;
+		}
+		return;
 	}
 
-	if (typeof payload.message === 'string' && payload.message.trim()) {
-		return payload.message;
+	if (error instanceof Error) {
+		toast.error(error.message || FALLBACK_ERROR_MESSAGE);
+		return;
 	}
 
-	return 'Erro inesperado.';
+	toast.error(FALLBACK_ERROR_MESSAGE);
 };
 
 const request = async <T>(
@@ -37,27 +94,27 @@ const request = async <T>(
 			},
 		});
 
-		const payload = (await response.json().catch(() => ({}))) as T & ApiErrorResponse;
+		const contentType = response.headers.get('content-type') ?? '';
+		const isJson = contentType.includes('application/json');
+		const payload = (isJson
+			? ((await response.json().catch(() => ({}))) as T & ApiErrorResponse)
+			: ((await response.text().catch(() => '')) as unknown as T & ApiErrorResponse));
 
 		if (!response.ok) {
-			const message = getErrorMessage(payload);
-			toast.error(message);
-			const handledError = new Error(message) as Error & { handled?: boolean };
-			handledError.handled = true;
-			throw handledError;
+			const message =
+				getErrorMessage(typeof payload === 'object' ? (payload as ApiErrorResponse) : undefined) ||
+				response.statusText ||
+				FALLBACK_ERROR_MESSAGE;
+			throw new ApiRequestError(
+				message,
+				response.status,
+				typeof payload === 'object' ? (payload as ApiErrorResponse) : undefined,
+			);
 		}
 
 		return payload as T;
 	} catch (error) {
-		if (error instanceof Error) {
-			const handled = (error as Error & { handled?: boolean }).handled;
-			if (!handled) {
-				toast.error(error.message || 'Erro inesperado.');
-			}
-			throw error;
-		}
-
-		toast.error('Erro inesperado.');
+		notifyApiError(error);
 		throw error;
 	}
 };

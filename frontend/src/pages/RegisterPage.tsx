@@ -12,18 +12,15 @@ const RegisterPage = () => {
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [error, setError] = useState<string | null>(null)
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
-		setError(null)
-
 		try {
 			await signUp({ name, email, password })
 			navigate('/dashboard', { replace: true })
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Falha ao criar a conta.')
+		} catch {
+			// Error toast is handled globally by request handler.
 		}
 	}
 
@@ -56,8 +53,6 @@ const RegisterPage = () => {
 							<Label>Senha</Label>
 							<Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
 						</div>
-
-						{error ? <p className="rounded-2xl border border-red-400/20 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
 
 						<Button type="submit" className="h-11 w-full rounded-lg px-6 text-base bg-rose-600 text-white hover:bg-rose-700" disabled={isLoading}>
 							{isLoading ? 'Criando...' : 'Criar conta'}

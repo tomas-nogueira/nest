@@ -1,5 +1,6 @@
 import { createContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { AuthContextValue, AuthCredentials, AuthUser } from '../types/auth';
+import { toast } from 'sonner';
+import type { AuthActionResult, AuthContextValue, AuthCredentials, AuthUser } from '../types/auth';
 import { signIn as signInRequest, signUp as signUpRequest } from '../services/authService';
 
 const AUTH_STORAGE_KEY = 'nest-backup:auth-session';
@@ -46,6 +47,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 			const response = await signInRequest(credentials);
 			setUser(response.user);
 			setAccessToken(response.accessToken);
+			toast.success(response.message);
+			return { message: response.message } satisfies AuthActionResult;
 		} finally {
 			setIsLoading(false);
 		}
@@ -58,6 +61,8 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 			const response = await signUpRequest(data);
 			setUser(response.user);
 			setAccessToken(response.accessToken);
+			toast.success(response.message);
+			return { message: response.message } satisfies AuthActionResult;
 		} finally {
 			setIsLoading(false);
 		}

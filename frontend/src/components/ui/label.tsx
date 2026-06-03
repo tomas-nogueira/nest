@@ -1,5 +1,10 @@
 import * as React from 'react'
+import { cn } from '../../lib/utils'
 
-export function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-sm font-medium text-slate-700">{children}</label>
+export function Label({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return (
+  <label className={cn('block text-sm font-medium text-slate-700', className)} {...props}>
+    {children}
+  </label>
+  )
 }

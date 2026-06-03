@@ -10,12 +10,16 @@ export type AuthCredentials = {
 	password: string;
 };
 
+export type AuthActionResult = {
+	message: string;
+};
+
 export type AuthContextValue = {
 	user: AuthUser | null;
 	accessToken: string | null;
 	isAuthenticated: boolean;
 	isLoading: boolean;
-	signIn: (credentials: AuthCredentials) => Promise<void>;
-	signUp: (data: AuthCredentials & { name: string }) => Promise<void>;
+	signIn: (credentials: AuthCredentials) => Promise<AuthActionResult>;
+	signUp: (data: AuthCredentials & { name: string }) => Promise<AuthActionResult>;
 	signOut: () => void;
 };

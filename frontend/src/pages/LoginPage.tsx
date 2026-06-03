@@ -13,17 +13,15 @@ const LoginPage = () => {
 	const redirectTo = (location.state as { from?: Location })?.from?.pathname ?? '/dashboard'
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [error, setError] = useState<string | null>(null)
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		setError(null)
 
 		try {
 			await signIn({ email, password })
 			navigate(redirectTo, { replace: true })
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Falha ao entrar.')
+		} catch {
+			// Error toast is handled globally by request handler.
 		}
 	}
 
@@ -66,10 +64,6 @@ const LoginPage = () => {
 								placeholder="••••••••"
 							/>
 						</div>
-
-						{error ? (
-							<p className="rounded-2xl border border-red-400/20 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-						) : null}
 
 						<Button
 							type="submit"

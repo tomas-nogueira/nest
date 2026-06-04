@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { DashboardPage } from '../pages/DashboardPage';
+import { SubjectsPage } from '../pages/SubjectsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { RegisterPage } from '../pages/RegisterPage';
@@ -19,6 +20,7 @@ const AppRoutes = () => {
 			<Route element={<ProtectedRoute />}>
 				<Route element={<ProtectedLayout />}>
 					<Route path="home" element={<DashboardPage />} />
+						<Route path="subjects" element={<SubjectsPage />} />
 					<Route path="dashboard" element={<Navigate to="/home" replace />} />
 				</Route>
 			</Route>

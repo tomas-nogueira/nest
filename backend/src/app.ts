@@ -10,6 +10,8 @@ const app = Fastify({ logger: true });
 app.register(cors, {
 	origin: true,
 	credentials: true,
+	methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization'],
 });
 
 app.register(jwt, {

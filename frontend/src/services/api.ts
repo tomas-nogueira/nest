@@ -85,13 +85,23 @@ const request = async <T>(
 	token?: string | null,
 ): Promise<T> => {
 	try {
+		const headers: Record<string, string> = {};
+
+		if (typeof options.headers === 'object' && options.headers) {
+			Object.assign(headers, options.headers as Record<string, string>);
+		}
+
+		if (token) {
+			headers['Authorization'] = `Bearer ${token}`;
+		}
+
+		if (options.body !== undefined && options.body !== null) {
+			headers['Content-Type'] = 'application/json';
+		}
+
 		const response = await fetch(`${API_URL}${path}`, {
 			...options,
-			headers: {
-				'Content-Type': 'application/json',
-				...(options.headers ?? {}),
-				...(token ? { Authorization: `Bearer ${token}` } : {}),
-			},
+			headers,
 		});
 
 		const contentType = response.headers.get('content-type') ?? '';

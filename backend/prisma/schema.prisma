@@ -100,7 +100,18 @@ model Attachment {
   createdAt DateTime @default(now())
 }
 
-// 7. Sistema de Votos (Upvote/Downvote)
+// 7. Arquivo armazenado
+model StoredFile {
+  id           String   @id @default(uuid())
+  originalName String
+  storedName   String   @unique
+  path         String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+}
+
+// 8. Sistema de Votos (Upvote/Downvote)
 model Vote {
   id        String @id @default(uuid())
   userId    String

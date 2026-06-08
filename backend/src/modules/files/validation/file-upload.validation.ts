@@ -5,6 +5,7 @@ const allowedMimeTypesByExtension: Record<string, string[]> = {
 	jpg: ["image/jpeg"],
 	jpeg: ["image/jpeg"],
 	png: ["image/png"],
+	webp: ["image/webp"],
 	pdf: ["application/pdf"],
 };
 
@@ -40,11 +41,16 @@ const hasPdfSignature = (buffer: Buffer) => buffer.subarray(0, 5).equals(Buffer.
 const hasPngSignature = (buffer: Buffer) =>
 	buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
 const hasJpegSignature = (buffer: Buffer) => buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+const hasWebpSignature = (buffer: Buffer) =>
+	buffer.length >= 12 &&
+	buffer.subarray(0, 4).equals(Buffer.from("RIFF")) &&
+	buffer.subarray(8, 12).equals(Buffer.from("WEBP"));
 
 const validateFileSignature = (extension: string, buffer: Buffer) => {
 	const isValid =
 		(extension === "pdf" && hasPdfSignature(buffer)) ||
 		(extension === "png" && hasPngSignature(buffer)) ||
+		(extension === "webp" && hasWebpSignature(buffer)) ||
 		((extension === "jpg" || extension === "jpeg") && hasJpegSignature(buffer));
 
 	if (!isValid) {

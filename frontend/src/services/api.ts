@@ -85,10 +85,12 @@ const request = async <T>(
 	token?: string | null,
 ): Promise<T> => {
 	try {
+		const isFormData = options.body instanceof FormData;
+		const hasBody = options.body !== undefined && options.body !== null;
 		const response = await fetch(`${API_URL}${path}`, {
 			...options,
 			headers: {
-				'Content-Type': 'application/json',
+				...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
 				...(options.headers ?? {}),
 				...(token ? { Authorization: `Bearer ${token}` } : {}),
 			},
@@ -119,4 +121,33 @@ const request = async <T>(
 	}
 };
 
-export { API_URL, request };
+const requestBlob = async (
+	path: string,
+	options: RequestInit = {},
+	token?: string | null,
+): Promise<Blob> => {
+	try {
+		const response = await fetch(`${API_URL}${path}`, {
+			...options,
+			headers: {
+				...(options.headers ?? {}),
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
+			},
+		});
+
+		if (!response.ok) {
+			const contentType = response.headers.get('content-type') ?? '';
+			const payload = contentType.includes('application/json')
+				? ((await response.json().catch(() => ({}))) as ApiErrorResponse)
+				: undefined;
+			throw new ApiRequestError(getErrorMessage(payload), response.status, payload);
+		}
+
+		return response.blob();
+	} catch (error) {
+		notifyApiError(error);
+		throw error;
+	}
+};
+
+export { API_URL, request, requestBlob };

@@ -40,5 +40,14 @@ const deleteStoredFileById = async (id: string): Promise<StoredFileEntity> => {
 	});
 };
 
-export { createStoredFile, deleteStoredFileById, findStoredFileById };
+const findStoredFileAttachmentCourses = async (id: string) => {
+	return prisma.attachment.findMany({
+		where: { storedFileId: id },
+		select: {
+			id: true,
+		},
+	});
+};
+
+export { createStoredFile, deleteStoredFileById, findStoredFileAttachmentCourses, findStoredFileById };
 export type { CreateStoredFileInput };

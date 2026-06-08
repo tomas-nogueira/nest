@@ -1,4 +1,4 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { SaveFileInput, StorageProvider } from "../../domain/storage-provider";
 
@@ -34,10 +34,14 @@ class LocalStorageProvider implements StorageProvider {
 		await rm(targetPath, { force: true });
 	}
 
-	getUrl(storedName: string) {
-		const filePath = this.resolveStoredFilePath(storedName);
+	async getBuffer(storedName: string) {
+		const targetPath = this.resolveStoredFilePath(storedName);
 
-		return path.relative(process.cwd(), filePath).replaceAll(path.sep, "/");
+		return readFile(targetPath);
+	}
+
+	getUrl(storedName: string) {
+		return `/files/${encodeURIComponent(storedName)}`;
 	}
 
 	private resolveStoredFilePath(storedName: string) {

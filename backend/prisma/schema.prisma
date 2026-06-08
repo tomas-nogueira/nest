@@ -29,6 +29,8 @@ model Student {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([courseId])
 }
 
 // 2. Curso
@@ -69,6 +71,7 @@ model SubjectCourse {
   course  Course  @relation(fields: [courseId], references: [id])
 
   @@unique([subjectId, courseId]) // Garante que não haja duplicatas da mesma matéria no mesmo curso
+  @@index([courseId])
 }
 
 // 5. Post (O material compartilhado)
@@ -76,6 +79,7 @@ model Post {
   id        String  @id @default(uuid())
   title     String
   subtitle  String?
+  content   Json?
   studentId String
   subjectId String
 
@@ -87,6 +91,9 @@ model Post {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([subjectId, createdAt])
+  @@index([studentId, createdAt])
 }
 
 // 6. Anexos
@@ -99,6 +106,9 @@ model Attachment {
   storedFile StoredFile @relation(fields: [storedFileId], references: [id])
 
   createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([storedFileId])
 }
 
 // 7. Arquivo armazenado
@@ -125,4 +135,5 @@ model Vote {
   post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId]) // Garante que um aluno vote apenas uma vez por post
+  @@index([postId])
 }

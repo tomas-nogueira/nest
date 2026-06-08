@@ -10,6 +10,7 @@ type SavedFile = {
 type StorageProvider = {
 	save(input: SaveFileInput): Promise<SavedFile>;
 	remove(storedName: string): Promise<void>;
+	getBuffer(storedName: string): Promise<Buffer>;
 	getUrl(storedName: string): string;
 };
 

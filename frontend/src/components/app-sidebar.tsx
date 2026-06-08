@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { MessagesSquare } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -15,9 +15,9 @@ import {
 
 const navItems = [
   {
-    title: 'Home',
+    title: 'Posts',
     url: '/home',
-    icon: Home,
+    icon: MessagesSquare,
   },
 ];
 

@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { ZodError } from "zod";
 import { env } from "../../config/env";
+import type { JwtPayload } from "../auth/auth.types";
 import { FileNotFoundError, FileValidationError } from "./errors/file.errors";
-import { getFileById, removeFile, uploadFile } from "./files.service";
+import { getAuthorizedFileById, getAuthorizedFileContent, removeFile, uploadFile } from "./files.service";
 import { fileParamsSchema } from "./files.schemas";
 
 const handleFileError = (error: unknown, reply: FastifyReply) => {
@@ -17,6 +18,14 @@ const handleFileError = (error: unknown, reply: FastifyReply) => {
 	}
 
 	if (error instanceof FileNotFoundError) {
+		return reply.code(404).send({ message: error.message });
+	}
+
+	if (error instanceof Error && error.message === "Voce nao tem permissao para acessar este arquivo.") {
+		return reply.code(403).send({ message: error.message });
+	}
+
+	if (error instanceof Error && error.message === "Usuario nao encontrado.") {
 		return reply.code(404).send({ message: error.message });
 	}
 
@@ -62,9 +71,10 @@ const upload = async (request: FastifyRequest, reply: FastifyReply) => {
 const show = async (request: FastifyRequest, reply: FastifyReply) => {
 	try {
 		await request.jwtVerify();
+		const payload = request.user as JwtPayload;
 
 		const params = fileParamsSchema.parse(request.params);
-		const file = await getFileById(params.id);
+		const file = await getAuthorizedFileById(params.id, payload.sub);
 
 		return reply.send({ file });
 	} catch (error) {
@@ -85,4 +95,38 @@ const destroy = async (request: FastifyRequest, reply: FastifyReply) => {
 	}
 };
 
-export { destroy, show, upload };
+const download = async (request: FastifyRequest, reply: FastifyReply) => {
+	try {
+		await request.jwtVerify();
+		const payload = request.user as JwtPayload;
+		const params = fileParamsSchema.parse(request.params);
+		const { file, buffer } = await getAuthorizedFileContent(params.id, payload.sub);
+
+		return reply
+			.header("Content-Type", file.mimeType)
+			.header("Content-Length", buffer.length)
+			.header("Content-Disposition", `attachment; filename="${encodeURIComponent(file.originalName)}"`)
+			.send(buffer);
+	} catch (error) {
+		return handleFileError(error, reply);
+	}
+};
+
+const preview = async (request: FastifyRequest, reply: FastifyReply) => {
+	try {
+		await request.jwtVerify();
+		const payload = request.user as JwtPayload;
+		const params = fileParamsSchema.parse(request.params);
+		const { file, buffer } = await getAuthorizedFileContent(params.id, payload.sub);
+
+		return reply
+			.header("Content-Type", file.mimeType)
+			.header("Content-Length", buffer.length)
+			.header("Content-Disposition", `inline; filename="${encodeURIComponent(file.originalName)}"`)
+			.send(buffer);
+	} catch (error) {
+		return handleFileError(error, reply);
+	}
+};
+
+export { destroy, download, preview, show, upload };

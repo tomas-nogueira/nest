@@ -11,6 +11,8 @@ const app = Fastify({ logger: true });
 app.register(cors, {
 	origin: true,
 	credentials: true,
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
 });
 
 app.register(jwt, {
@@ -20,7 +22,7 @@ app.register(jwt, {
 app.register(multipart, {
 	limits: {
 		fileSize: env.MAX_UPLOAD_FILE_SIZE_BYTES,
-		files: 1,
+		files: env.MAX_POST_ATTACHMENTS,
 	},
 });
 

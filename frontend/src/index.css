@@ -44,3 +44,72 @@ button {
   min-height: 100vh;
   background: #f8fafc;
 }
+
+.rich-editor .ProseMirror {
+  min-height: 9rem;
+}
+
+.rich-editor .ProseMirror > * + * {
+  margin-top: 0.75rem;
+}
+
+.rich-editor .ProseMirror h1 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+}
+
+.rich-editor .ProseMirror h2 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+}
+
+.rich-editor .ProseMirror h3 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 650;
+}
+
+.rich-editor .ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.rich-editor .ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.rich-editor .ProseMirror blockquote {
+  border-left: 4px solid #0e7490;
+  color: #475569;
+  padding-left: 1rem;
+}
+
+.rich-editor .ProseMirror pre {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  background: #020617;
+  color: #f8fafc;
+  padding: 0.75rem;
+}
+
+.rich-editor .ProseMirror code {
+  border-radius: 0.25rem;
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 0.125rem 0.25rem;
+}
+
+.rich-editor .ProseMirror pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.rich-editor .ProseMirror a {
+  color: #0e7490;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

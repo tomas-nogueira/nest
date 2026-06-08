@@ -2,9 +2,15 @@ import { randomUUID } from "node:crypto";
 import type { StoredFileEntity } from "./domain/file.entity";
 import type { StorageProvider } from "./domain/storage-provider";
 import { FileNotFoundError } from "./errors/file.errors";
-import { createStoredFile, deleteStoredFileById, findStoredFileById } from "./repositories/stored-files.repository";
+import {
+	createStoredFile,
+	deleteStoredFileById,
+	findStoredFileAttachmentCourses,
+	findStoredFileById,
+} from "./repositories/stored-files.repository";
 import { storageProvider } from "./infrastructure/storage/storage-provider.factory";
 import { validateUploadedFile } from "./validation/file-upload.validation";
+import { prisma } from "../../lib/prisma";
 
 type UploadFileInput = {
 	buffer: Buffer;
@@ -57,6 +63,43 @@ const getFileById = async (id: string, provider = storageProvider) => {
 	return mapStoredFileResponse(file, provider);
 };
 
+const ensureFileAccess = async (fileId: string, studentId: string) => {
+	const student = await prisma.student.findUnique({
+		where: { id: studentId },
+		select: { id: true },
+	});
+
+	if (!student) {
+		throw new Error("Usuario nao encontrado.");
+	}
+
+	const attachmentCourses = await findStoredFileAttachmentCourses(fileId);
+
+	if (attachmentCourses.length === 0) {
+		return;
+	}
+
+	return;
+};
+
+const getAuthorizedFileById = async (id: string, studentId: string, provider = storageProvider) => {
+	const file = await getFileById(id, provider);
+	await ensureFileAccess(id, studentId);
+
+	return file;
+};
+
+const getAuthorizedFileContent = async (id: string, studentId: string, provider = storageProvider) => {
+	const file = await getFileById(id, provider);
+	await ensureFileAccess(id, studentId);
+	const buffer = await provider.getBuffer(file.storedName);
+
+	return {
+		file,
+		buffer,
+	};
+};
+
 const removeFile = async (id: string, provider = storageProvider) => {
 	const file = await findStoredFileById(id);
 
@@ -68,4 +111,8 @@ const removeFile = async (id: string, provider = storageProvider) => {
 	await deleteStoredFileById(id);
 };
 
-export { getFileById, removeFile, uploadFile };
+const removeStoredFilesFromProvider = async (storedNames: string[], provider = storageProvider) => {
+	return Promise.allSettled(storedNames.map((storedName) => provider.remove(storedName)));
+};
+
+export { getAuthorizedFileById, getAuthorizedFileContent, getFileById, removeFile, removeStoredFilesFromProvider, uploadFile };

@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import multipart from "@fastify/multipart";
 import { env } from "./config/env";
 import { prisma } from "./lib/prisma";
 import { registerRoutes } from "./routes";
@@ -10,12 +11,19 @@ const app = Fastify({ logger: true });
 app.register(cors, {
 	origin: true,
 	credentials: true,
-	methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-	allowedHeaders: ['Content-Type', 'Authorization'],
+	methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
 });
 
 app.register(jwt, {
 	secret: env.JWT_SECRET,
+});
+
+app.register(multipart, {
+	limits: {
+		fileSize: env.MAX_UPLOAD_FILE_SIZE_BYTES,
+		files: env.MAX_POST_ATTACHMENTS,
+	},
 });
 
 app.register(registerRoutes);

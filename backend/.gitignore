@@ -39,3 +39,6 @@ temp/
 .DS_Store
 .vscode/
 .idea/
+
+# uploaded files
+storage/uploads/

@@ -11,7 +11,7 @@ const fieldLabels: Record<string, string> = {
 	phone: 'telefone',
 };
 
-const formatValidationIssue = (path: Array<string | number>, message: string, code: string) => {
+const formatValidationIssue = (path: PropertyKey[], message: string, code: string) => {
 	const field = path[0];
 	const fieldName = typeof field === 'string' ? fieldLabels[field] ?? field : null;
 

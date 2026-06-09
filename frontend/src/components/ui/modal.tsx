@@ -7,7 +7,7 @@ export function Modal({ open = true, onClose, children }: { open?: boolean; onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={cn('relative z-10 w-full max-w-md p-4')}>{children}</div>
+      <div className={cn('relative z-10 max-h-[96vh] max-w-[96vw] p-4')}>{children}</div>
     </div>
   )
 }

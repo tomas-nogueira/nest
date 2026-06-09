@@ -85,23 +85,6 @@ const request = async <T>(
 	token?: string | null,
 ): Promise<T> => {
 	try {
-		const headers: Record<string, string> = {};
-
-		if (typeof options.headers === 'object' && options.headers) {
-			Object.assign(headers, options.headers as Record<string, string>);
-		}
-
-		if (token) {
-			headers['Authorization'] = `Bearer ${token}`;
-		}
-
-		if (options.body !== undefined && options.body !== null) {
-			headers['Content-Type'] = 'application/json';
-		}
-
-		const response = await fetch(`${API_URL}${path}`, {
-			...options,
-			headers,
 		const isFormData = options.body instanceof FormData;
 		const hasBody = options.body !== undefined && options.body !== null;
 		const response = await fetch(`${API_URL}${path}`, {

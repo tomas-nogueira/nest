@@ -1,6 +1,6 @@
 import { createContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import type { AuthActionResult, AuthContextValue, AuthCredentials, AuthUser } from '../types/auth';
+import type { AuthActionResult, AuthContextValue, AuthCredentials, AuthRegisterData, AuthUser } from '../types/auth';
 import { signIn as signInRequest, signUp as signUpRequest } from '../services/authService';
 
 const AUTH_STORAGE_KEY = 'nest-backup:auth-session';
@@ -54,7 +54,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 		}
 	};
 
-	const signUp = async (data: AuthCredentials & { name: string }) => {
+	const signUp = async (data: AuthRegisterData) => {
 		setIsLoading(true);
 
 		try {

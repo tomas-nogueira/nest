@@ -112,16 +112,19 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
             side="top"
             align="end"
             sideOffset={12}
-                className="mb-1 w-52 rounded-xl border border-red-500/10 bg-background p-1 shadow-lg shadow-black/10"
+                className="mb-1 w-52 rounded-xl border border-red-500/10 bg-background p-1 shadow-lg shadow-red-950/5 ring-1 ring-red-500/5"
           >
             <DropdownMenuSeparator />
-
-              <div className="px-0.5 py-0.5">
-                <Button variant="destructive" size="sm" className="h-8 w-full justify-start px-2.5" onClick={handleLogout}>
-                <LogOut className="mr-2 size-4" />
-                Sair da conta
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="default"
+              className="h-9 w-full justify-start gap-2 rounded-md border border-red-500/10 px-2 text-red-700 hover:bg-red-500/5 hover:text-red-700 focus-visible:border-red-500/15 focus-visible:ring-0"
+              onClick={handleLogout}
+            >
+              <LogOut className="size-4" />
+              Sair da conta
+            </Button>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>

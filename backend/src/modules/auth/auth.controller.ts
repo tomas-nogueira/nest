@@ -101,7 +101,11 @@ const me = async (request: FastifyRequest, reply: FastifyReply) => {
 
 		return reply.send({ user });
 	} catch (error) {
-		return handleAuthError(error, reply);
+		if (error instanceof Error && error.message === 'Usuário não encontrado.') {
+			return reply.code(404).send({ message: error.message });
+		}
+
+		return reply.code(401).send({ message: 'Sessão inválida ou expirada.' });
 	}
 };
 

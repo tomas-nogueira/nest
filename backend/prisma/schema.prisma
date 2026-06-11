@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // 1. Usuário (Estudante)
@@ -24,7 +23,7 @@ model Student {
   courseId     String?
 
   // Relações
-  course Course? @relation(fields: [courseId], references: [id])
+  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
   posts  Post[]
   votes  Vote[]
 
@@ -68,8 +67,8 @@ model SubjectCourse {
   subjectId String
   courseId  String
 
-  subject Subject @relation(fields: [subjectId], references: [id])
-  course  Course  @relation(fields: [courseId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([subjectId, courseId]) // Garante que não haja duplicatas da mesma matéria no mesmo curso
   @@index([courseId])
@@ -86,7 +85,7 @@ model Post {
 
   // Relações
   student     Student      @relation(fields: [studentId], references: [id])
-  subject     Subject      @relation(fields: [subjectId], references: [id])
+  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   attachments Attachment[]
   votes       Vote[]
 

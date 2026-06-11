@@ -9,6 +9,7 @@ const fieldLabels: Record<string, string> = {
 	email: 'e-mail',
 	password: 'senha',
 	phone: 'telefone',
+	courseId: 'curso',
 };
 
 const formatValidationIssue = (path: PropertyKey[], message: string, code: string) => {
@@ -66,6 +67,8 @@ const handleAuthError = (error: unknown, reply: FastifyReply) => {
 			return reply.code(401).send({ message: error.message });
 		case 'Usuário não encontrado.':
 			return reply.code(404).send({ message: error.message });
+		case 'Curso inválido.':
+			return reply.code(400).send({ message: error.message });
 		default:
 			throw error;
 	}

@@ -17,6 +17,15 @@ const authUserSelect = {
 	name: true,
 	email: true,
 	phone: true,
+	bio: true,
+	avatarFileId: true,
+	hype: true,
+	course: {
+		select: {
+			id: true,
+			name: true,
+		},
+	},
 } as const;
 
 export { authUserSelect, loginSchema, registerSchema };

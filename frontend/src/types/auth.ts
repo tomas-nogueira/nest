@@ -3,6 +3,13 @@ export type AuthUser = {
 	name: string;
 	email: string;
 	phone: string | null;
+	bio: string | null;
+	avatarUrl: string | null;
+	hype: number;
+	course: {
+		id: string;
+		name: string;
+	} | null;
 };
 
 export type AuthCredentials = {
@@ -22,4 +29,5 @@ export type AuthContextValue = {
 	signIn: (credentials: AuthCredentials) => Promise<AuthActionResult>;
 	signUp: (data: AuthCredentials & { name: string }) => Promise<AuthActionResult>;
 	signOut: () => void;
+	updateUser: (user: AuthUser) => void;
 };

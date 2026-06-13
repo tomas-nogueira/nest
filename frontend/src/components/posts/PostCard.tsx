@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Download, Edit2, FileText, ImageIcon, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
@@ -8,6 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { RichTextRenderer } from './RichTextRenderer';
+import { UserAvatar } from '../UserAvatar';
 import { fetchAttachmentPreview, type AcademicPost, type PostAttachment, type RichTextNode } from '../../services/postsService';
 
 const CONTENT_COLLAPSE_HEIGHT = 260;
@@ -200,9 +202,20 @@ const PostCard = ({ post, accessToken, currentUserId, onEdit, onDelete, onVote, 
 	return (
 		<article className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
 			<header className="flex items-start justify-between gap-3">
-				<div>
+				<div className="min-w-0">
 					<div className="flex flex-wrap items-center gap-2">
-						<strong className="text-sm text-slate-950">{post.author.name}</strong>
+						<Link
+							to={`/profile/${post.author.id}`}
+							className="inline-flex min-w-0 items-center gap-2 rounded-md pr-1 text-sm font-semibold text-slate-950 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+						>
+							<UserAvatar
+								name={post.author.name}
+								avatarUrl={post.author.avatarUrl}
+								token={accessToken}
+								className="size-7 shrink-0 text-[11px]"
+							/>
+							<span className="truncate">{post.author.name}</span>
+						</Link>
 						<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
 							{post.subject.name}
 						</span>
@@ -217,12 +230,19 @@ const PostCard = ({ post, accessToken, currentUserId, onEdit, onDelete, onVote, 
 								<MoreHorizontal />
 							</Button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-36 bg-white">
-							<DropdownMenuItem onClick={() => onEdit(post)}>
+						<DropdownMenuContent align="end" className="w-36 rounded-lg border border-slate-200 bg-white p-1 shadow-lg shadow-slate-950/5">
+							<DropdownMenuItem
+								className="cursor-pointer rounded-md px-2 py-2 text-slate-700 transition-colors hover:bg-cyan-50 hover:text-cyan-800 focus:bg-cyan-50 focus:text-cyan-800"
+								onClick={() => onEdit(post)}
+							>
 								<Edit2 />
 								Editar
 							</DropdownMenuItem>
-							<DropdownMenuItem variant="destructive" onClick={() => onDelete(post)}>
+							<DropdownMenuItem
+								variant="destructive"
+								className="cursor-pointer rounded-md px-2 py-2 transition-colors hover:bg-red-50 hover:text-red-700 focus:bg-red-50 focus:text-red-700"
+								onClick={() => onDelete(post)}
+							>
 								<Trash2 />
 								Excluir
 							</DropdownMenuItem>

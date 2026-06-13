@@ -32,6 +32,21 @@ type ListPostsInput = {
 	limit: number;
 };
 
+type ListStudentPostsInput = {
+	currentStudentId: string;
+	profileStudentId: string;
+	page: number;
+	limit: number;
+};
+
+type ListStudentVotesInput = {
+	currentStudentId: string;
+	profileStudentId: string;
+	page: number;
+	limit: number;
+	voteType?: 1 | -1;
+};
+
 type VoteInput = {
 	studentId: string;
 	postId: string;
@@ -197,7 +212,7 @@ const mapPost = (
 		content: Prisma.JsonValue | null;
 		createdAt: Date;
 		updatedAt: Date;
-		student: { id: string; name: string };
+		student: { id: string; name: string; avatarFileId: string | null };
 		subject: { id: string; name: string };
 		attachments: Array<Parameters<typeof mapAttachment>[0]>;
 	},
@@ -210,7 +225,11 @@ const mapPost = (
 	content: post.content,
 	createdAt: post.createdAt,
 	updatedAt: post.updatedAt,
-	author: post.student,
+	author: {
+		id: post.student.id,
+		name: post.student.name,
+		avatarUrl: post.student.avatarFileId ? `/files/${post.student.avatarFileId}/preview` : null,
+	},
 	subject: post.subject,
 	attachments: post.attachments.map(mapAttachment),
 	votes: {
@@ -251,6 +270,7 @@ const postInclude = {
 		select: {
 			id: true,
 			name: true,
+			avatarFileId: true,
 		},
 	},
 	subject: {
@@ -424,6 +444,136 @@ const listPosts = async (input: ListPostsInput) => {
 
 	return {
 		posts: posts.map((post) => mapPost(post, scoresByPostId.get(post.id) ?? 0, userVotesByPostId.get(post.id) ?? 0)),
+		pagination: {
+			page: input.page,
+			limit: input.limit,
+			total,
+			totalPages: Math.ceil(total / input.limit),
+		},
+	};
+};
+
+const mapPostsWithVoteState = async (
+	posts: Array<Parameters<typeof mapPost>[0] & { id: string }>,
+	currentStudentId: string,
+) => {
+	const postIds = posts.map((post) => post.id);
+	const [voteStats, userVotes] = await Promise.all([
+		postIds.length
+			? prisma.vote.groupBy({
+					by: ["postId"],
+					where: {
+						postId: {
+							in: postIds,
+						},
+					},
+					_sum: {
+						vote_type: true,
+					},
+				})
+			: [],
+		postIds.length
+			? prisma.vote.findMany({
+					where: {
+						postId: {
+							in: postIds,
+						},
+						userId: currentStudentId,
+					},
+					select: {
+						postId: true,
+						vote_type: true,
+					},
+				})
+			: [],
+	]);
+
+	const scoresByPostId = new Map(voteStats.map((vote) => [vote.postId, vote._sum.vote_type ?? 0]));
+	const userVotesByPostId = new Map(userVotes.map((vote) => [vote.postId, vote.vote_type as 1 | -1]));
+
+	return posts.map((post) => mapPost(post, scoresByPostId.get(post.id) ?? 0, userVotesByPostId.get(post.id) ?? 0));
+};
+
+const listStudentPosts = async (input: ListStudentPostsInput) => {
+	await ensureStudentExists(input.profileStudentId);
+
+	const where: Prisma.PostWhereInput = {
+		studentId: input.profileStudentId,
+		subject: {
+			isActive: true,
+		},
+	};
+
+	const [posts, total] = await prisma.$transaction([
+		prisma.post.findMany({
+			where,
+			include: postInclude,
+			orderBy: {
+				createdAt: "desc",
+			},
+			skip: (input.page - 1) * input.limit,
+			take: input.limit,
+		}),
+		prisma.post.count({ where }),
+	]);
+
+	return {
+		posts: await mapPostsWithVoteState(posts, input.currentStudentId),
+		pagination: {
+			page: input.page,
+			limit: input.limit,
+			total,
+			totalPages: Math.ceil(total / input.limit),
+		},
+	};
+};
+
+const listStudentVotedPosts = async (input: ListStudentVotesInput) => {
+	await ensureStudentExists(input.profileStudentId);
+
+	const where: Prisma.VoteWhereInput = {
+		userId: input.profileStudentId,
+		...(input.voteType ? { vote_type: input.voteType } : {}),
+		post: {
+			subject: {
+				isActive: true,
+			},
+		},
+	};
+
+	const [votes, total] = await prisma.$transaction([
+		prisma.vote.findMany({
+			where,
+		select: {
+			createdAt: true,
+			vote_type: true,
+			post: {
+				include: postInclude,
+				},
+			},
+			orderBy: {
+				createdAt: "desc",
+			},
+			skip: (input.page - 1) * input.limit,
+			take: input.limit,
+		}),
+		prisma.vote.count({ where }),
+	]);
+
+	const posts = await mapPostsWithVoteState(
+		votes.map((vote) => vote.post),
+		input.currentStudentId,
+	);
+
+	const voteTypeByPostId = new Map(votes.map((vote) => [vote.post.id, vote.vote_type as 1 | -1]));
+	const voteCreatedAtByPostId = new Map(votes.map((vote) => [vote.post.id, vote.createdAt]));
+
+	return {
+		votes: posts.map((post) => ({
+			post,
+			voteType: voteTypeByPostId.get(post.id) ?? 0,
+			createdAt: voteCreatedAtByPostId.get(post.id) ?? post.createdAt,
+		})),
 		pagination: {
 			page: input.page,
 			limit: input.limit,
@@ -642,5 +792,15 @@ const voteOnPost = async (input: VoteInput) => {
 	};
 };
 
-export { createPost, deletePost, listCourseSubjects, listPostFilters, listPosts, updatePost, voteOnPost };
+export {
+	createPost,
+	deletePost,
+	listCourseSubjects,
+	listPostFilters,
+	listPosts,
+	listStudentPosts,
+	listStudentVotedPosts,
+	updatePost,
+	voteOnPost,
+};
 export type { UploadedPostFile };

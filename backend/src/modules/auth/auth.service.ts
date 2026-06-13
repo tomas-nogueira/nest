@@ -24,11 +24,19 @@ const mapUser = (student: {
 	name: string;
 	email: string;
 	phone: string | null;
+	bio?: string | null;
+	avatarFileId?: string | null;
+	hype?: number;
+	course?: { id: string; name: string } | null;
 }): AuthUser => ({
 	id: student.id,
 	name: student.name,
 	email: student.email,
 	phone: student.phone,
+	bio: student.bio ?? null,
+	avatarUrl: student.avatarFileId ? `/files/${student.avatarFileId}/preview` : null,
+	hype: student.hype ?? 0,
+	course: student.course ?? null,
 });
 
 const buildAuthResponse = async (
@@ -37,6 +45,10 @@ const buildAuthResponse = async (
 		name: string;
 		email: string;
 		phone: string | null;
+		bio?: string | null;
+		avatarFileId?: string | null;
+		hype?: number;
+		course?: { id: string; name: string } | null;
 	},
 	signToken: JwtSigner,
 ): Promise<AuthResponse> => {
@@ -75,6 +87,14 @@ const registerStudent = async (input: RegisterInput, signToken: JwtSigner) => {
 const loginStudent = async (input: LoginInput, signToken: JwtSigner) => {
 	const student = await prisma.student.findUnique({
 		where: { email: input.email },
+		include: {
+			course: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
+		},
 	});
 
 	if (!student) {
@@ -93,6 +113,10 @@ const loginStudent = async (input: LoginInput, signToken: JwtSigner) => {
 			name: student.name,
 			email: student.email,
 			phone: student.phone,
+			bio: student.bio ?? null,
+			avatarFileId: student.avatarFileId ?? null,
+			hype: student.hype ?? 0,
+			course: student.course ?? null,
 		},
 		signToken,
 	);

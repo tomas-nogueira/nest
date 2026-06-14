@@ -14,6 +14,11 @@ type MePayload = {
 	user: AuthUser;
 };
 
+type AuthRegisterData = AuthCredentials & {
+	name: string;
+	courseId: string;
+};
+
 const getFirstName = (name: string) => {
 	const [firstName] = name.trim().split(/\s+/);
 	return firstName || 'estudante';
@@ -31,7 +36,7 @@ const signIn = async (credentials: AuthCredentials) => {
 	} satisfies FormattedAuthResponse;
 };
 
-const signUp = async (data: AuthCredentials & { name: string }) => {
+const signUp = async (data: AuthRegisterData) => {
 	const payload = await request<AuthPayload>('/auth/register', {
 		method: 'POST',
 		body: JSON.stringify(data),

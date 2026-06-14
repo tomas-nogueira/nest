@@ -7,6 +7,7 @@ type RegisterInput = {
 	name: string;
 	email: string;
 	password: string;
+	courseId: string;
 	phone?: string;
 };
 
@@ -57,6 +58,15 @@ const registerStudent = async (input: RegisterInput, signToken: JwtSigner) => {
 		throw new Error("E-mail já cadastrado.");
 	}
 
+	const course = await prisma.course.findUnique({
+		where: { id: input.courseId },
+		select: { isActive: true },
+	});
+
+	if (!course?.isActive) {
+		throw new Error("Curso inválido.");
+	}
+
 	const passwordHash = await bcrypt.hash(input.password, 10);
 
 	const student = await prisma.student.create({
@@ -65,6 +75,7 @@ const registerStudent = async (input: RegisterInput, signToken: JwtSigner) => {
 			email: input.email,
 			passwordHash,
 			phone: input.phone,
+			courseId: input.courseId,
 		},
 		select: authUserSelect,
 	});

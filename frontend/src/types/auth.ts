@@ -10,6 +10,11 @@ export type AuthCredentials = {
 	password: string;
 };
 
+export type AuthRegisterData = AuthCredentials & {
+	name: string;
+	courseId: string;
+};
+
 export type AuthActionResult = {
 	message: string;
 };
@@ -20,6 +25,6 @@ export type AuthContextValue = {
 	isAuthenticated: boolean;
 	isLoading: boolean;
 	signIn: (credentials: AuthCredentials) => Promise<AuthActionResult>;
-	signUp: (data: AuthCredentials & { name: string }) => Promise<AuthActionResult>;
+	signUp: (data: AuthRegisterData) => Promise<AuthActionResult>;
 	signOut: () => void;
 };

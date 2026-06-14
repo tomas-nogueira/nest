@@ -11,14 +11,18 @@ const listSubjects = async (request: FastifyRequest, reply: FastifyReply) => {
 }
 
 const create = async (request: FastifyRequest, reply: FastifyReply) => {
-  const body = request.body as { name: string; isActive?: boolean }
-  const subject = await createSubject({ name: body.name, isActive: body.isActive })
+  const body = request.body as { name: string; isActive?: boolean; courseIds?: string[] }
+  const subject = await createSubject({
+    name: body.name,
+    isActive: body.isActive,
+    courseIds: body.courseIds,
+  })
   return reply.code(201).send(subject)
 }
 
 const update = async (request: FastifyRequest, reply: FastifyReply) => {
   const { id } = request.params as { id: string }
-  const body = request.body as { name?: string; isActive?: boolean }
+  const body = request.body as { name?: string; isActive?: boolean; courseIds?: string[] }
   const subject = await updateSubject(id, body)
   return reply.send(subject)
 }

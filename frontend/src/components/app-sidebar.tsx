@@ -1,6 +1,6 @@
 import { useMemo, useState, type ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book } from 'lucide-react';
+import { Book, Layers } from 'lucide-react';
 import { MessagesSquare } from 'lucide-react';
 import { ChevronUp, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
@@ -29,6 +29,11 @@ const navItems = [
     title: 'Posts',
     url: '/home',
     icon: MessagesSquare,
+  },
+  {
+    title: 'Cursos',
+    url: '/courses',
+    icon: Layers,
   },
   {
     title: 'Matérias',

@@ -49,7 +49,7 @@ const signUp = async (data: AuthRegisterData) => {
 };
 
 const fetchMe = async (token: string) => {
-	return request<MePayload>('/auth/me', {}, token);
+	return request<MePayload>('/me', {}, token);
 };
 
 export { fetchMe, signIn, signUp };

@@ -1,9 +1,54 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from '../components/app-sidebar';
 import { GlobalSearch } from '../components/GlobalSearch';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '../components/ui/sidebar';
 
+const pageHeaders = [
+	{
+		matches: (pathname: string) => pathname === '/home' || pathname === '/dashboard',
+		title: 'Posts',
+		description: 'Materiais acadêmicos',
+	},
+	{
+		matches: (pathname: string) => pathname === '/explore',
+		title: 'Explorar',
+		description: 'Tendências e descobertas',
+	},
+	{
+		matches: (pathname: string) => pathname === '/courses',
+		title: 'Cursos',
+		description: 'Catálogo acadêmico',
+	},
+	{
+		matches: (pathname: string) => pathname === '/subjects',
+		title: 'Matérias',
+		description: 'Disciplinas disponíveis',
+	},
+	{
+		matches: (pathname: string) => pathname.startsWith('/profile'),
+		title: 'Perfil',
+		description: 'Dados e atividade do estudante',
+	},
+	{
+		matches: (pathname: string) => pathname.startsWith('/posts/'),
+		title: 'Post',
+		description: 'Detalhes do material',
+	},
+	{
+		matches: (pathname: string) => pathname === '/search',
+		title: 'Busca',
+		description: 'Resultados da pesquisa',
+	},
+];
+
+const getPageHeader = (pathname: string) => {
+	return pageHeaders.find((item) => item.matches(pathname)) ?? pageHeaders[0];
+};
+
 const ProtectedLayout = () => {
+	const location = useLocation();
+	const header = getPageHeader(location.pathname);
+
 	return (
 		<SidebarProvider>
 			<AppSidebar />
@@ -13,8 +58,8 @@ const ProtectedLayout = () => {
 						<SidebarTrigger />
 						<div aria-hidden="true" className="h-5 w-px bg-red-500/10" />
 						<div className="hidden flex-col lg:flex">
-							<span className="text-sm font-medium text-foreground">Posts</span>
-							<span className="text-xs text-muted-foreground">Materiais academicos</span>
+							<span className="text-sm font-medium text-foreground">{header.title}</span>
+							<span className="text-xs text-muted-foreground">{header.description}</span>
 						</div>
 					</div>
 					<div className="col-span-2 row-start-2 w-full sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:justify-self-center">

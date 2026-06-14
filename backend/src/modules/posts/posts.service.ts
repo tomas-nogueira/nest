@@ -453,6 +453,23 @@ const listPosts = async (input: ListPostsInput) => {
 	};
 };
 
+const getPostById = async (postId: string, studentId: string) => {
+	await ensurePostVisibleToStudent(postId, studentId);
+
+	const post = await prisma.post.findUnique({
+		where: { id: postId },
+		include: postInclude,
+	});
+
+	if (!post) {
+		throw new PostNotFoundError();
+	}
+
+	const votes = await getPostVoteState(post.id, studentId);
+
+	return mapPost(post, votes.score, votes.userVote);
+};
+
 const mapPostsWithVoteState = async (
 	posts: Array<Parameters<typeof mapPost>[0] & { id: string }>,
 	currentStudentId: string,
@@ -795,9 +812,12 @@ const voteOnPost = async (input: VoteInput) => {
 export {
 	createPost,
 	deletePost,
+	getPostById,
 	listCourseSubjects,
 	listPostFilters,
 	listPosts,
+	mapPost,
+	postInclude,
 	listStudentPosts,
 	listStudentVotedPosts,
 	updatePost,

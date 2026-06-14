@@ -93,6 +93,10 @@ type VoteResponse = {
 	votes: AcademicPost['votes'];
 };
 
+type PostResponse = {
+	post: AcademicPost;
+};
+
 export const fetchPostSubjects = (token: string) => {
 	return request<SubjectsResponse>('/posts/subjects', {}, token);
 };
@@ -115,6 +119,10 @@ export const fetchPosts = (token: string, filters: { subjectId?: string; courseI
 	const query = params.toString();
 
 	return request<ListPostsResponse>(`/posts${query ? `?${query}` : ''}`, {}, token);
+};
+
+export const fetchPostById = (token: string, postId: string) => {
+	return request<PostResponse>(`/posts/${postId}`, {}, token);
 };
 
 export const createPost = (token: string, input: { title: string; subtitle?: string; subjectId: string; content: RichTextNode; attachments: File[] }) => {

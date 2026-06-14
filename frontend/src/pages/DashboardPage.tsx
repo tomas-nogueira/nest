@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Download, Filter, Trash2, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Modal } from '../components/ui/modal';
@@ -41,12 +42,13 @@ const downloadBlob = (blob: Blob, filename: string) => {
 
 const DashboardPage = () => {
 	const { accessToken, user } = useAuth();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [subjects, setSubjects] = useState<Subject[]>([]);
 	const [allFilterSubjects, setAllFilterSubjects] = useState<Subject[]>([]);
 	const [courses, setCourses] = useState<Course[]>([]);
 	const [posts, setPosts] = useState<AcademicPost[]>([]);
-	const [selectedSubjectId, setSelectedSubjectId] = useState('');
-	const [selectedCourseId, setSelectedCourseId] = useState('');
+	const [selectedSubjectId, setSelectedSubjectId] = useState(() => searchParams.get('subjectId') ?? '');
+	const [selectedCourseId, setSelectedCourseId] = useState(() => searchParams.get('courseId') ?? '');
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
@@ -103,10 +105,54 @@ const DashboardPage = () => {
 	}, [loadFeed]);
 
 	useEffect(() => {
+		const nextCourseId = searchParams.get('courseId') ?? '';
+		const nextSubjectId = searchParams.get('subjectId') ?? '';
+
+		setSelectedCourseId(nextCourseId);
+		setSelectedSubjectId(nextSubjectId);
+	}, [searchParams]);
+
+	useEffect(() => {
+		if (allFilterSubjects.length === 0) {
+			return;
+		}
+
 		if (selectedSubjectId && !filterSubjects.some((subject) => subject.id === selectedSubjectId)) {
 			setSelectedSubjectId('');
 		}
-	}, [filterSubjects, selectedSubjectId]);
+	}, [allFilterSubjects.length, filterSubjects, selectedSubjectId]);
+
+	const updateFilterParams = (filters: { courseId?: string; subjectId?: string }) => {
+		const nextParams = new URLSearchParams(searchParams);
+
+		if (filters.courseId !== undefined) {
+			if (filters.courseId) {
+				nextParams.set('courseId', filters.courseId);
+			} else {
+				nextParams.delete('courseId');
+			}
+		}
+
+		if (filters.subjectId !== undefined) {
+			if (filters.subjectId) {
+				nextParams.set('subjectId', filters.subjectId);
+			} else {
+				nextParams.delete('subjectId');
+			}
+		}
+
+		setSearchParams(nextParams, { replace: true });
+	};
+
+	const handleCourseFilterChange = (courseId: string) => {
+		setSelectedCourseId(courseId);
+		updateFilterParams({ courseId });
+	};
+
+	const handleSubjectFilterChange = (subjectId: string) => {
+		setSelectedSubjectId(subjectId);
+		updateFilterParams({ subjectId });
+	};
 
 	useEffect(() => {
 		return () => {
@@ -229,14 +275,14 @@ const DashboardPage = () => {
 						value={selectedCourseId}
 						options={courses}
 						placeholder="Pesquisar curso"
-						onChange={setSelectedCourseId}
+						onChange={handleCourseFilterChange}
 					/>
 					<SearchableFilter
 						label="Todas as disciplinas"
 						value={selectedSubjectId}
 						options={filterSubjects}
 						placeholder="Pesquisar disciplina"
-						onChange={setSelectedSubjectId}
+						onChange={handleSubjectFilterChange}
 					/>
 				</div>
 			</div>

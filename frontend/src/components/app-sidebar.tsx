@@ -1,6 +1,6 @@
 import { type ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, ChevronUp, LogOut, Layers, MessagesSquare, UserRound } from 'lucide-react';
+import { Book, ChevronUp, Compass, LogOut, Layers, MessagesSquare, UserRound } from 'lucide-react';
 import { Button } from './ui/button';
 import { UserAvatar } from './UserAvatar';
 import {
@@ -31,6 +31,11 @@ const navItems = [
     icon: MessagesSquare,
   },
   {
+    title: 'Explorar',
+    url: '/explore',
+    icon: Compass,
+  },
+  {
     title: 'Cursos',
     url: '/courses',
     icon: Layers,
@@ -54,7 +59,7 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
 		<Sidebar variant="inset" collapsible="icon" {...props}>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel>Navegacao</SidebarGroupLabel>
+					<SidebarGroupLabel>Navegação</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{navItems.map((item) => {
@@ -91,14 +96,14 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
 									className="h-9 justify-start gap-2 rounded-md bg-transparent px-2 shadow-none hover:bg-red-500/5 hover:text-red-700 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:!mx-auto group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:py-0"
 								>
 									<UserAvatar
-										name={user?.name ?? 'Usuario'}
+										name={user?.name ?? 'Usuário'}
 										avatarUrl={user?.avatarUrl}
 										token={accessToken}
 										className="size-7 shrink-0 text-[11px] group-data-[collapsible=icon]:size-7"
 									/>
 									<div className="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
 										<span className="truncate text-sm font-medium text-sidebar-foreground">
-											{user?.name ?? 'Usuario logado'}
+											{user?.name ?? 'Usuário logado'}
 										</span>
 									</div>
 									<ChevronUp className="ml-auto size-3.5 text-red-700/50 group-data-[collapsible=icon]:hidden" />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardHeader, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -14,6 +15,8 @@ import {
 } from '../services/coursesService'
 
 const CoursesPage = () => {
+  const [searchParams] = useSearchParams()
+  const selectedCourseId = searchParams.get('courseId')
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -103,7 +106,7 @@ const CoursesPage = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
             {courses.map((course) => (
-              <Card key={course.id} className="max-w-none flex flex-col p-4 hover:shadow-md transition-shadow">
+              <Card key={course.id} className={`max-w-none flex flex-col p-4 hover:shadow-md transition-shadow ${selectedCourseId === course.id ? 'border-red-300 ring-2 ring-red-500/20' : ''}`}>
                 <CardHeader className="mb-2 px-0">
                   <h3 className="font-semibold text-slate-900 truncate">{course.name}</h3>
                   <p className="text-xs text-slate-500 mt-1">{course.isActive ? 'Ativo' : 'Inativo'}</p>

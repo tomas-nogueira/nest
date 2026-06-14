@@ -12,6 +12,7 @@ import {
 import {
 	createPost,
 	deletePost,
+	getPostById,
 	listCourseSubjects,
 	listPostFilters,
 	listPosts,
@@ -167,6 +168,19 @@ const index = async (request: FastifyRequest, reply: FastifyReply) => {
 	}
 };
 
+const show = async (request: FastifyRequest, reply: FastifyReply) => {
+	try {
+		await request.jwtVerify();
+		const payload = request.user as JwtPayload;
+		const params = postParamsSchema.parse(request.params);
+		const post = await getPostById(params.id, payload.sub);
+
+		return reply.send({ post });
+	} catch (error) {
+		return handlePostError(error, reply);
+	}
+};
+
 const store = async (request: FastifyRequest, reply: FastifyReply) => {
 	try {
 		await request.jwtVerify();
@@ -243,4 +257,4 @@ const destroy = async (request: FastifyRequest, reply: FastifyReply) => {
 	}
 };
 
-export { destroy, filters, index, store, subjects, update, vote };
+export { destroy, filters, index, show, store, subjects, update, vote };

@@ -51,6 +51,7 @@ export type AcademicPost = {
 	author: {
 		id: string;
 		name: string;
+		avatarUrl: string | null;
 	};
 	subject: Subject;
 	attachments: PostAttachment[];

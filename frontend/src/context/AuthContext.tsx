@@ -99,6 +99,10 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 		localStorage.removeItem(AUTH_STORAGE_KEY);
 	};
 
+	const updateUser = (nextUser: AuthUser) => {
+		setUser(nextUser);
+	};
+
 	const value = useMemo<AuthContextValue>(
 		() => ({
 			user,
@@ -108,6 +112,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 			signIn,
 			signUp,
 			signOut,
+			updateUser,
 		}),
 		[user, accessToken, isLoading],
 	);

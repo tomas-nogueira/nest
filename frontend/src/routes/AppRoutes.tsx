@@ -6,6 +6,7 @@ import { SubjectsPage } from '../pages/SubjectsPage';
 import { CoursesPage } from '../pages/CoursesPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -21,8 +22,10 @@ const AppRoutes = () => {
 			<Route element={<ProtectedRoute />}>
 				<Route element={<ProtectedLayout />}>
 					<Route path="home" element={<DashboardPage />} />
-					<Route path="courses" element={<CoursesPage />} />
-					<Route path="subjects" element={<SubjectsPage />} />
+				  <Route path="courses" element={<CoursesPage />} />		
+          <Route path="subjects" element={<SubjectsPage />} />
+					<Route path="profile" element={<ProfilePage />} />
+					<Route path="profile/:studentId" element={<ProfilePage />} />
 					<Route path="dashboard" element={<Navigate to="/home" replace />} />
 				</Route>
 			</Route>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import {
 	ArrowDown,
 	ArrowLeft,
@@ -9,6 +9,7 @@ import {
 	Edit3,
 	Flame,
 	ImageIcon,
+	MessageCircle,
 	Trash2,
 	X,
 } from 'lucide-react';
@@ -35,10 +36,12 @@ import {
 } from '../services/postsService';
 import {
 	fetchProfile,
+	fetchProfileComments,
 	fetchProfilePosts,
 	fetchProfileVotes,
 	updateProfile,
 	type Pagination,
+	type ProfileComment,
 	type ProfilePayload,
 	type ProfileVote,
 } from '../services/profileService';
@@ -47,7 +50,8 @@ type ProfileTab = 'overview' | 'posts' | 'votes' | 'comments';
 type VoteFilter = 'all' | 'up' | 'down';
 type OverviewItem =
 	| { type: 'post'; id: string; createdAt: string; post: AcademicPost }
-	| { type: 'vote'; id: string; createdAt: string; vote: ProfileVote };
+	| { type: 'vote'; id: string; createdAt: string; vote: ProfileVote }
+	| { type: 'comment'; id: string; createdAt: string; comment: ProfileComment };
 
 const PAGE_SIZE = 10;
 
@@ -72,6 +76,23 @@ const EmptyState = ({ title, description }: { title: string; description: string
 		<p className="text-sm font-medium text-slate-900">{title}</p>
 		<p className="mt-1 text-sm text-slate-500">{description}</p>
 	</div>
+);
+
+const CommentActivityCard = ({ item }: { item: ProfileComment }) => (
+	<article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+		<div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+			<MessageCircle className="size-3.5" />
+			Comentario em{' '}
+			<Link to={`/posts/${item.post.id}`} className="text-red-700 hover:text-red-800">
+				{item.post.title}
+			</Link>
+		</div>
+		<p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">{item.comment.content}</p>
+		<div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+			<span>{item.comment.votes.score} upvotes</span>
+			<span>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt))}</span>
+		</div>
+	</article>
 );
 
 const getBannerStyle = (color: { r: number; g: number; b: number } | null) => {
@@ -268,6 +289,8 @@ const ProfilePage = () => {
 	const [postsPagination, setPostsPagination] = useState<Pagination | null>(null);
 	const [votes, setVotes] = useState<ProfileVote[]>([]);
 	const [votesPagination, setVotesPagination] = useState<Pagination | null>(null);
+	const [comments, setComments] = useState<ProfileComment[]>([]);
+	const [commentsPagination, setCommentsPagination] = useState<Pagination | null>(null);
 	const [subjects, setSubjects] = useState<Subject[]>([]);
 	const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
 	const [voteFilter, setVoteFilter] = useState<VoteFilter>('all');
@@ -275,6 +298,7 @@ const ProfilePage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isPostsLoading, setIsPostsLoading] = useState(false);
 	const [isVotesLoading, setIsVotesLoading] = useState(false);
+	const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 	const [isEditingPost, setIsEditingPost] = useState(false);
 	const [isDeletingPost, setIsDeletingPost] = useState(false);
 	const [isEditOpen, setIsEditOpen] = useState(false);
@@ -284,6 +308,7 @@ const ProfilePage = () => {
 	const sentinelRef = useRef<HTMLDivElement | null>(null);
 	const isPostsLoadingRef = useRef(false);
 	const isVotesLoadingRef = useRef(false);
+	const isCommentsLoadingRef = useRef(false);
 
 	const isOwnProfile = !studentId || studentId === user?.id;
 	const targetStudentId = profile?.user.id;
@@ -305,6 +330,8 @@ const ProfilePage = () => {
 				setPostsPagination(null);
 				setVotes([]);
 				setVotesPagination(null);
+				setComments([]);
+				setCommentsPagination(null);
 				setVoteFilter('all');
 				setActiveTab('overview');
 			}
@@ -355,6 +382,27 @@ const ProfilePage = () => {
 		[accessToken, currentVoteType, targetStudentId],
 	);
 
+	const loadComments = useCallback(
+		async (page: number) => {
+			if (!accessToken || !targetStudentId || isCommentsLoadingRef.current) {
+				return;
+			}
+
+			isCommentsLoadingRef.current = true;
+			setIsCommentsLoading(true);
+
+			try {
+				const response = await fetchProfileComments(accessToken, targetStudentId, page, PAGE_SIZE);
+				setComments((current) => (page === 1 ? response.comments : [...current, ...response.comments]));
+				setCommentsPagination(response.pagination);
+			} finally {
+				isCommentsLoadingRef.current = false;
+				setIsCommentsLoading(false);
+			}
+		},
+		[accessToken, targetStudentId],
+	);
+
 	useEffect(() => {
 		const timeoutId = window.setTimeout(() => {
 			void loadProfile();
@@ -403,6 +451,18 @@ const ProfilePage = () => {
 	}, [loadVotes, targetStudentId, voteFilter]);
 
 	useEffect(() => {
+		if (!targetStudentId) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			void loadComments(1);
+		}, 0);
+
+		return () => window.clearTimeout(timeoutId);
+	}, [loadComments, targetStudentId]);
+
+	useEffect(() => {
 		const sentinel = sentinelRef.current;
 
 		if (!sentinel) {
@@ -421,12 +481,16 @@ const ProfilePage = () => {
 			if ((activeTab === 'votes' || activeTab === 'overview') && votesPagination && votesPagination.page < votesPagination.totalPages) {
 				void loadVotes(votesPagination.page + 1);
 			}
+
+			if ((activeTab === 'comments' || activeTab === 'overview') && commentsPagination && commentsPagination.page < commentsPagination.totalPages) {
+				void loadComments(commentsPagination.page + 1);
+			}
 		}, { rootMargin: '360px 0px' });
 
 		observer.observe(sentinel);
 
 		return () => observer.disconnect();
-	}, [activeTab, loadPosts, loadVotes, postsPagination, votesPagination]);
+	}, [activeTab, commentsPagination, loadComments, loadPosts, loadVotes, postsPagination, votesPagination]);
 
 	useEffect(() => {
 		return () => {
@@ -570,15 +634,20 @@ const ProfilePage = () => {
 			return Boolean(votesPagination && votesPagination.page < votesPagination.totalPages);
 		}
 
+		if (activeTab === 'comments') {
+			return Boolean(commentsPagination && commentsPagination.page < commentsPagination.totalPages);
+		}
+
 		if (activeTab === 'overview') {
 			return Boolean(
 				(postsPagination && postsPagination.page < postsPagination.totalPages) ||
-				(votesPagination && votesPagination.page < votesPagination.totalPages),
+				(votesPagination && votesPagination.page < votesPagination.totalPages) ||
+				(commentsPagination && commentsPagination.page < commentsPagination.totalPages),
 			);
 		}
 
 		return false;
-	}, [activeTab, postsPagination, votesPagination]);
+	}, [activeTab, commentsPagination, postsPagination, votesPagination]);
 
 	const overviewItems = useMemo<OverviewItem[]>(() => {
 		if (!profile) {
@@ -600,8 +669,14 @@ const ProfilePage = () => {
 					createdAt: vote.createdAt,
 					vote,
 				})),
+			...comments.map((comment) => ({
+				type: 'comment' as const,
+				id: comment.comment.id,
+				createdAt: comment.createdAt,
+				comment,
+			})),
 		].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
-	}, [posts, profile, votes]);
+	}, [comments, posts, profile, votes]);
 
 	if (isLoading) {
 		return (
@@ -662,6 +737,9 @@ const ProfilePage = () => {
 							<span className="rounded-full border border-slate-200 px-3 py-1 text-slate-700">
 								{profile.summary.votesCount} votos
 							</span>
+							<span className="rounded-full border border-slate-200 px-3 py-1 text-slate-700">
+								{profile.summary.commentsCount} comentarios
+							</span>
 						</div>
 					</div>
 				</div>
@@ -687,7 +765,7 @@ const ProfilePage = () => {
 
 			{activeTab === 'overview' ? (
 				<div className="space-y-4">
-					{overviewItems.length === 0 && !isPostsLoading && !isVotesLoading ? (
+					{overviewItems.length === 0 && !isPostsLoading && !isVotesLoading && !isCommentsLoading ? (
 						<EmptyState
 							title="Nenhuma atividade encontrada"
 							description="Posts, votos e comentarios aparecerao aqui em ordem cronologica."
@@ -714,6 +792,18 @@ const ProfilePage = () => {
 								);
 							}
 
+							if (item.type === 'comment') {
+								return (
+									<div key={`overview-comment-${item.id}`} className="space-y-2">
+										<div className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+											<MessageCircle className="size-3.5 text-cyan-700" />
+											Comentario
+										</div>
+										<CommentActivityCard item={item.comment} />
+									</div>
+								);
+							}
+
 							return (
 								<div key={`overview-vote-${item.id}-${item.vote.voteType}`} className="space-y-2">
 									<div className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
@@ -734,12 +824,6 @@ const ProfilePage = () => {
 							);
 						})
 					)}
-
-					{profile.summary.commentsCount === 0 ? (
-						<div className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
-							Comentarios serao intercalados nesta timeline quando o modulo for implementado.
-						</div>
-					) : null}
 				</div>
 			) : null}
 
@@ -809,17 +893,20 @@ const ProfilePage = () => {
 			) : null}
 
 			{activeTab === 'comments' ? (
-				<EmptyState
-					title="Comentarios em preparacao"
-					description="A estrutura da aba ja esta reservada para exibir os comentarios quando o modulo for implementado."
-				/>
+				<div className="space-y-4">
+					{comments.length === 0 && !isCommentsLoading ? (
+						<EmptyState title="Nenhum comentario publicado" description="Os comentarios desse perfil aparecerao aqui." />
+					) : (
+						comments.map((comment) => <CommentActivityCard key={comment.comment.id} item={comment} />)
+					)}
+				</div>
 			) : null}
 
 			<div ref={sentinelRef} className="h-1" aria-hidden="true" />
-			{activeTab !== 'comments' && (isPostsLoading || isVotesLoading) ? (
+			{(isPostsLoading || isVotesLoading || isCommentsLoading) ? (
 				<div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">Carregando mais itens...</div>
 			) : null}
-			{activeTab !== 'comments' && !canLoadMore && (posts.length > 0 || votes.length > 0) ? (
+			{!canLoadMore && (posts.length > 0 || votes.length > 0 || comments.length > 0) ? (
 				<p className="pb-2 text-center text-xs text-slate-400">Voce chegou ao fim da lista.</p>
 			) : null}
 

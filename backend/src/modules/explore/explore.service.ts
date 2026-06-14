@@ -1,5 +1,6 @@
 import type { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
+import { scoreRelevantPost, type PostRankingMetric } from "../posts/post-ranking";
 import { mapPost, postInclude } from "../posts/posts.service";
 
 type ExploreInput = {
@@ -97,6 +98,7 @@ const getPostMetrics = async (postIds: string[], studentId: string) => {
 						postId: {
 							in: postIds,
 						},
+						commentId: null,
 					},
 					select: {
 						postId: true,
@@ -112,6 +114,7 @@ const getPostMetrics = async (postIds: string[], studentId: string) => {
 							in: postIds,
 						},
 						userId: studentId,
+						commentId: null,
 					},
 					select: {
 						postId: true,
@@ -121,15 +124,19 @@ const getPostMetrics = async (postIds: string[], studentId: string) => {
 			: [],
 	]);
 
-	const metrics = new Map<string, { score: number; upvotes: number; recentVotes: number }>();
+	const metrics = new Map<string, PostRankingMetric>();
 
 	for (const postId of postIds) {
-		metrics.set(postId, { score: 0, upvotes: 0, recentVotes: 0 });
+		metrics.set(postId, { score: 0, upvotes: 0, recentVotes: 0, commentCount: 0 });
 	}
 
 	const cutoff = getRecentCutoff();
 	for (const vote of votes) {
-		const current = metrics.get(vote.postId) ?? { score: 0, upvotes: 0, recentVotes: 0 };
+		if (!vote.postId) {
+			continue;
+		}
+
+		const current = metrics.get(vote.postId) ?? { score: 0, upvotes: 0, recentVotes: 0, commentCount: 0 };
 		current.score += vote.vote_type;
 		current.upvotes += vote.vote_type === 1 ? 1 : 0;
 		current.recentVotes += vote.createdAt >= cutoff ? 1 : 0;
@@ -138,14 +145,10 @@ const getPostMetrics = async (postIds: string[], studentId: string) => {
 
 	return {
 		metrics,
-		userVotes: new Map(userVotes.map((vote) => [vote.postId, vote.vote_type as 1 | -1])),
+		userVotes: new Map(
+			userVotes.flatMap((vote) => (vote.postId ? [[vote.postId, vote.vote_type as 1 | -1] as const] : [])),
+		),
 	};
-};
-
-const scorePost = (post: { createdAt: Date }, metric: { score: number; upvotes: number; recentVotes: number }) => {
-	const ageHours = Math.max(1, (Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60));
-	const recencyBoost = Math.max(0, 48 - ageHours) / 12;
-	return metric.upvotes * 3 + metric.recentVotes * 2 + metric.score + recencyBoost;
 };
 
 const listPopularPosts = async (studentId: string, limit: number, courseId?: string) => {
@@ -177,7 +180,10 @@ const listPopularPosts = async (studentId: string, limit: number, courseId?: str
 	return posts
 		.map((post) => ({
 			post,
-			rank: scorePost(post, metrics.get(post.id) ?? { score: 0, upvotes: 0, recentVotes: 0 }),
+			rank: scoreRelevantPost(post, {
+				...(metrics.get(post.id) ?? { score: 0, upvotes: 0, recentVotes: 0, commentCount: 0 }),
+				commentCount: post.commentCount,
+			}),
 		}))
 		.sort((left, right) => {
 			if (right.rank !== left.rank) {

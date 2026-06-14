@@ -1,5 +1,5 @@
 import { request, requestBlob } from './api';
-import type { AcademicPost } from './postsService';
+import type { AcademicPost, PostComment } from './postsService';
 import type { AuthUser } from '../types/auth';
 
 export type ProfileSummary = {
@@ -17,6 +17,12 @@ export type ProfileVote = {
 	createdAt: string;
 };
 
+export type ProfileComment = {
+	comment: PostComment;
+	post: AcademicPost;
+	createdAt: string;
+};
+
 export type Pagination = {
 	page: number;
 	limit: number;
@@ -31,7 +37,8 @@ export type ProfilePayload = {
 	postsPagination?: Pagination;
 	votes?: ProfileVote[];
 	votesPagination?: Pagination;
-	comments: [];
+	comments: ProfileComment[];
+	commentsPagination?: Pagination;
 };
 
 export type ProfilePostsPayload = {
@@ -41,6 +48,11 @@ export type ProfilePostsPayload = {
 
 export type ProfileVotesPayload = {
 	votes: ProfileVote[];
+	pagination: Pagination;
+};
+
+export type ProfileCommentsPayload = {
+	comments: ProfileComment[];
 	pagination: Pagination;
 };
 
@@ -86,6 +98,15 @@ export const fetchProfileVotes = (
 	}
 
 	return request<ProfileVotesPayload>(`/profile/${studentId}/votes?${params.toString()}`, {}, token);
+};
+
+export const fetchProfileComments = (token: string, studentId: string, page: number, limit = 10) => {
+	const params = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+	});
+
+	return request<ProfileCommentsPayload>(`/profile/${studentId}/comments?${params.toString()}`, {}, token);
 };
 
 export const updateProfile = (token: string, input: UpdateProfileInput) => {

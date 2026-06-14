@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDown, ArrowUp, Download, Edit2, FileText, ImageIcon, MoreHorizontal, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Download, Edit2, FileText, ImageIcon, MessageCircle, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
 	DropdownMenu,
@@ -292,31 +292,40 @@ const PostCard = ({ post, accessToken, currentUserId, onEdit, onDelete, onVote, 
 				</div>
 			) : null}
 
-			<footer className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-				<div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
-					<Button
-						type="button"
-						variant={post.votes.userVote === 1 ? 'secondary' : 'ghost'}
-						size="icon-sm"
-						title="Votar positivo"
-						className={post.votes.userVote === 1 ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : undefined}
-						aria-pressed={post.votes.userVote === 1}
-						onClick={() => onVote(post, 1)}
+			<footer className="mt-4 flex items-center border-t border-slate-100 pt-3">
+				<div className="flex items-center gap-2">
+					<div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
+						<Button
+							type="button"
+							variant={post.votes.userVote === 1 ? 'secondary' : 'ghost'}
+							size="icon-sm"
+							title="Votar positivo"
+							className={post.votes.userVote === 1 ? 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100' : undefined}
+							aria-pressed={post.votes.userVote === 1}
+							onClick={() => onVote(post, 1)}
+						>
+							<ArrowUp className={post.votes.userVote === 1 ? 'text-emerald-700' : undefined} />
+						</Button>
+						<span className="min-w-8 text-center text-sm font-semibold text-slate-800">{post.votes.score}</span>
+						<Button
+							type="button"
+							variant={post.votes.userVote === -1 ? 'secondary' : 'ghost'}
+							size="icon-sm"
+							title="Votar negativo"
+							className={post.votes.userVote === -1 ? 'border-red-200 bg-red-50 text-red-800 hover:bg-red-100' : undefined}
+							aria-pressed={post.votes.userVote === -1}
+							onClick={() => onVote(post, -1)}
+						>
+							<ArrowDown className={post.votes.userVote === -1 ? 'text-red-700' : undefined} />
+						</Button>
+					</div>
+					<Link
+						to={`/posts/${post.id}`}
+						className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
 					>
-						<ArrowUp className={post.votes.userVote === 1 ? 'text-emerald-700' : undefined} />
-					</Button>
-					<span className="min-w-8 text-center text-sm font-semibold text-slate-800">{post.votes.score}</span>
-					<Button
-						type="button"
-						variant={post.votes.userVote === -1 ? 'secondary' : 'ghost'}
-						size="icon-sm"
-						title="Votar negativo"
-						className={post.votes.userVote === -1 ? 'border-red-200 bg-red-50 text-red-800 hover:bg-red-100' : undefined}
-						aria-pressed={post.votes.userVote === -1}
-						onClick={() => onVote(post, -1)}
-					>
-						<ArrowDown className={post.votes.userVote === -1 ? 'text-red-700' : undefined} />
-					</Button>
+						<MessageCircle className="size-4" />
+						{post.commentCount}
+					</Link>
 				</div>
 			</footer>
 		</article>

@@ -215,6 +215,7 @@ const mapPost = (
 		student: { id: string; name: string; avatarFileId: string | null };
 		subject: { id: string; name: string };
 		attachments: Array<Parameters<typeof mapAttachment>[0]>;
+		commentCount: number;
 	},
 	voteScore = 0,
 	userVote: 1 | -1 | 0 = 0,
@@ -236,12 +237,13 @@ const mapPost = (
 		score: voteScore,
 		userVote,
 	},
+	commentCount: post.commentCount,
 });
 
 const getPostVoteState = async (postId: string, studentId: string) => {
 	const [scoreResult, userVote] = await Promise.all([
 		prisma.vote.aggregate({
-			where: { postId },
+			where: { postId, commentId: null },
 			_sum: {
 				vote_type: true,
 			},
@@ -280,6 +282,9 @@ const postInclude = {
 		},
 	},
 	attachments: {
+		where: {
+			commentId: null,
+		},
 		include: {
 			storedFile: {
 				select: {
@@ -417,6 +422,7 @@ const listPosts = async (input: ListPostsInput) => {
 						postId: {
 							in: postIds,
 						},
+						commentId: null,
 					},
 					_sum: {
 						vote_type: true,
@@ -430,6 +436,7 @@ const listPosts = async (input: ListPostsInput) => {
 							in: postIds,
 						},
 						userId: input.studentId,
+						commentId: null,
 					},
 					select: {
 						postId: true,
@@ -483,6 +490,7 @@ const mapPostsWithVoteState = async (
 						postId: {
 							in: postIds,
 						},
+						commentId: null,
 					},
 					_sum: {
 						vote_type: true,
@@ -496,6 +504,7 @@ const mapPostsWithVoteState = async (
 							in: postIds,
 						},
 						userId: currentStudentId,
+						commentId: null,
 					},
 					select: {
 						postId: true,
@@ -550,6 +559,7 @@ const listStudentVotedPosts = async (input: ListStudentVotesInput) => {
 
 	const where: Prisma.VoteWhereInput = {
 		userId: input.profileStudentId,
+		commentId: null,
 		...(input.voteType ? { vote_type: input.voteType } : {}),
 		post: {
 			subject: {
@@ -561,11 +571,11 @@ const listStudentVotedPosts = async (input: ListStudentVotesInput) => {
 	const [votes, total] = await prisma.$transaction([
 		prisma.vote.findMany({
 			where,
-		select: {
-			createdAt: true,
-			vote_type: true,
-			post: {
-				include: postInclude,
+			select: {
+				createdAt: true,
+				vote_type: true,
+				post: {
+					include: postInclude,
 				},
 			},
 			orderBy: {
@@ -577,13 +587,17 @@ const listStudentVotedPosts = async (input: ListStudentVotesInput) => {
 		prisma.vote.count({ where }),
 	]);
 
+	const votesWithPosts = votes.filter(
+		(vote): vote is typeof vote & { post: NonNullable<(typeof vote)["post"]> } => Boolean(vote.post),
+	);
+
 	const posts = await mapPostsWithVoteState(
-		votes.map((vote) => vote.post),
+		votesWithPosts.map((vote) => vote.post),
 		input.currentStudentId,
 	);
 
-	const voteTypeByPostId = new Map(votes.map((vote) => [vote.post.id, vote.vote_type as 1 | -1]));
-	const voteCreatedAtByPostId = new Map(votes.map((vote) => [vote.post.id, vote.createdAt]));
+	const voteTypeByPostId = new Map(votesWithPosts.map((vote) => [vote.post.id, vote.vote_type as 1 | -1]));
+	const voteCreatedAtByPostId = new Map(votesWithPosts.map((vote) => [vote.post.id, vote.createdAt]));
 
 	return {
 		votes: posts.map((post) => ({
@@ -773,6 +787,7 @@ const voteOnPost = async (input: VoteInput) => {
 			where: {
 				userId: input.studentId,
 				postId: input.postId,
+				commentId: null,
 			},
 		});
 	} else {
@@ -789,6 +804,7 @@ const voteOnPost = async (input: VoteInput) => {
 			create: {
 				userId: input.studentId,
 				postId: input.postId,
+				commentId: null,
 				vote_type: input.voteType,
 			},
 		});
@@ -797,6 +813,7 @@ const voteOnPost = async (input: VoteInput) => {
 	const result = await prisma.vote.aggregate({
 		where: {
 			postId: input.postId,
+			commentId: null,
 		},
 		_sum: {
 			vote_type: true,
@@ -818,6 +835,7 @@ export {
 	listPosts,
 	mapPost,
 	postInclude,
+	ensurePostVisibleToStudent,
 	listStudentPosts,
 	listStudentVotedPosts,
 	updatePost,

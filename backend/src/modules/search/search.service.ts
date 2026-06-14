@@ -263,6 +263,7 @@ const searchPosts = async (studentId: string, query: string, limit: number, only
 						postId: {
 							in: postIds,
 						},
+						commentId: null,
 					},
 					_sum: {
 						vote_type: true,
@@ -276,6 +277,7 @@ const searchPosts = async (studentId: string, query: string, limit: number, only
 							in: postIds,
 						},
 						userId: studentId,
+						commentId: null,
 					},
 					select: {
 						postId: true,

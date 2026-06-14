@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import type { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { removeFile, uploadFile } from "../files/files.service";
+import { listStudentComments } from "../posts/comments.service";
 import { listStudentPosts, listStudentVotedPosts } from "../posts/posts.service";
 
 type UploadedAvatarFile = {
@@ -66,7 +67,7 @@ const getProfile = async (studentId: string) => {
 			_count: {
 				select: {
 					posts: true,
-					votes: true,
+					comments: true,
 				},
 			},
 		},
@@ -80,6 +81,7 @@ const getProfile = async (studentId: string) => {
 		by: ["vote_type"],
 		where: {
 			userId: studentId,
+			commentId: null,
 		},
 		_count: {
 			_all: true,
@@ -93,11 +95,11 @@ const getProfile = async (studentId: string) => {
 		user: mapProfileUser(student),
 		summary: {
 			postsCount: student._count.posts,
-			votesCount: student._count.votes,
+			votesCount: upvotes + downvotes,
 			upvotes,
 			downvotes,
-			commentsCount: 0,
-			commentsReady: false,
+			commentsCount: student._count.comments,
+			commentsReady: true,
 		},
 		comments: [],
 	};
@@ -111,11 +113,16 @@ const getProfileVotes = async (input: ProfileVotesInput) => {
 	return listStudentVotedPosts(input);
 };
 
+const getProfileComments = async (input: ProfileListInput) => {
+	return listStudentComments(input);
+};
+
 const getOwnProfile = async (studentId: string) => {
-	const [profile, posts, votes] = await Promise.all([
+	const [profile, posts, votes, comments] = await Promise.all([
 		getProfile(studentId),
 		getProfilePosts({ currentStudentId: studentId, profileStudentId: studentId, page: 1, limit: 10 }),
 		getProfileVotes({ currentStudentId: studentId, profileStudentId: studentId, page: 1, limit: 10 }),
+		getProfileComments({ currentStudentId: studentId, profileStudentId: studentId, page: 1, limit: 10 }),
 	]);
 
 	return {
@@ -124,6 +131,8 @@ const getOwnProfile = async (studentId: string) => {
 		postsPagination: posts.pagination,
 		votes: votes.votes,
 		votesPagination: votes.pagination,
+		comments: comments.comments,
+		commentsPagination: comments.pagination,
 	};
 };
 
@@ -208,5 +217,5 @@ const updateProfile = async (input: UpdateProfileInput) => {
 	}
 };
 
-export { getOwnProfile, getProfile, getProfilePosts, getProfileVotes, updateProfile };
+export { getOwnProfile, getProfile, getProfileComments, getProfilePosts, getProfileVotes, updateProfile };
 export type { UploadedAvatarFile };

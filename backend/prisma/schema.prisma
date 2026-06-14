@@ -29,6 +29,7 @@ model Student {
   avatarFile StoredFile? @relation("StudentAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
   posts      Post[]
   votes      Vote[]
+  comments   Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -91,6 +92,8 @@ model Post {
   subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   attachments Attachment[]
   votes       Vote[]
+  comments    Comment[]
+  commentCount Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -99,18 +102,43 @@ model Post {
   @@index([studentId, createdAt])
 }
 
+// 6. Comentarios em posts
+model Comment {
+  id        String  @id @default(uuid())
+  postId    String
+  studentId String
+  parentId  String?
+  content   String
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id])
+  parent  Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+  votes   Vote[]
+  attachments Attachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, parentId, createdAt])
+  @@index([studentId, createdAt])
+}
+
 // 6. Anexos
 model Attachment {
-  id           String @id @default(uuid())
-  postId       String
+  id           String  @id @default(uuid())
+  postId       String?
+  commentId    String?
   storedFileId String
 
-  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post       Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment    Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
   storedFile StoredFile @relation(fields: [storedFileId], references: [id])
 
   createdAt DateTime @default(now())
 
   @@index([postId])
+  @@index([commentId])
   @@index([storedFileId])
 }
 
@@ -130,17 +158,21 @@ model StoredFile {
 
 // 8. Sistema de Votos (Upvote/Downvote)
 model Vote {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
   userId    String
-  postId    String
+  postId    String?
+  commentId String?
   vote_type Int // 1 para Up, -1 para Down
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  student Student @relation(fields: [userId], references: [id])
-  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [userId], references: [id])
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId]) // Garante que um aluno vote apenas uma vez por post
+  @@unique([userId, commentId])
   @@index([postId])
+  @@index([commentId])
   @@index([userId, createdAt])
 }

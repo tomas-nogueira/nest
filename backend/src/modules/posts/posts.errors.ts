@@ -3,8 +3,8 @@ class PostValidationError extends Error {}
 class PostAuthorizationError extends Error {}
 
 class PostNotFoundError extends Error {
-	constructor() {
-		super("Post nao encontrado.");
+	constructor(message = "Post nao encontrado.") {
+		super(message);
 	}
 }
 

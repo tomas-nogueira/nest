@@ -59,6 +59,29 @@ export type AcademicPost = {
 		score: number;
 		userVote: 1 | -1 | 0;
 	};
+	commentCount: number;
+};
+
+export type PostComment = {
+	id: string;
+	postId: string;
+	parentId: string | null;
+	content: string;
+	createdAt: string;
+	updatedAt: string;
+	author: {
+		id: string;
+		name: string;
+		avatarUrl: string | null;
+	};
+	votes: {
+		score: number;
+		userVote: 1 | -1 | 0;
+	};
+	attachments: PostAttachment[];
+	canEdit: boolean;
+	canDelete: boolean;
+	replies: PostComment[];
 };
 
 type ListPostsResponse = {
@@ -93,8 +116,26 @@ type VoteResponse = {
 	votes: AcademicPost['votes'];
 };
 
+type CommentVoteResponse = {
+	votes: PostComment['votes'];
+};
+
 type PostResponse = {
 	post: AcademicPost;
+};
+
+type CommentsResponse = {
+	comments: PostComment[];
+	pagination: {
+		page: number;
+		limit: number;
+		total: number;
+		totalPages: number;
+	};
+};
+
+type CommentResponse = {
+	comment: PostComment;
 };
 
 export const fetchPostSubjects = (token: string) => {
@@ -172,6 +213,69 @@ export const deletePost = (token: string, postId: string) => {
 export const voteOnPost = (token: string, postId: string, voteType: 1 | -1 | 0) => {
 	return request<VoteResponse>(
 		`/posts/${postId}/vote`,
+		{
+			method: 'PUT',
+			body: JSON.stringify({ voteType }),
+		},
+		token,
+	);
+};
+
+export const fetchPostComments = (token: string, postId: string, page = 1, limit = 20) => {
+	const params = new URLSearchParams({
+		page: String(page),
+		limit: String(limit),
+	});
+
+	return request<CommentsResponse>(`/posts/${postId}/comments?${params.toString()}`, {}, token);
+};
+
+export const createComment = (token: string, postId: string, input: { content: string; parentId?: string; attachments?: File[] }) => {
+	const formData = new FormData();
+	formData.append('content', input.content);
+
+	if (input.parentId) {
+		formData.append('parentId', input.parentId);
+	}
+
+	input.attachments?.forEach((file) => {
+		formData.append('attachments', file);
+	});
+
+	return request<CommentResponse>(
+		`/posts/${postId}/comments`,
+		{
+			method: 'POST',
+			body: formData,
+		},
+		token,
+	);
+};
+
+export const updateComment = (token: string, postId: string, commentId: string, input: { content: string }) => {
+	return request<CommentResponse>(
+		`/posts/${postId}/comments/${commentId}`,
+		{
+			method: 'PATCH',
+			body: JSON.stringify(input),
+		},
+		token,
+	);
+};
+
+export const deleteComment = (token: string, postId: string, commentId: string) => {
+	return request<{ deletedCount: number }>(
+		`/posts/${postId}/comments/${commentId}`,
+		{
+			method: 'DELETE',
+		},
+		token,
+	);
+};
+
+export const voteOnComment = (token: string, postId: string, commentId: string, voteType: 1 | -1 | 0) => {
+	return request<CommentVoteResponse>(
+		`/posts/${postId}/comments/${commentId}/vote`,
 		{
 			method: 'PUT',
 			body: JSON.stringify({ voteType }),

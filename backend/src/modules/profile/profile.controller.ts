@@ -6,6 +6,7 @@ import { FileValidationError } from "../files/errors/file.errors";
 import {
 	getOwnProfile,
 	getProfile,
+	getProfileComments,
 	getProfilePosts,
 	getProfileVotes,
 	updateProfile,
@@ -153,6 +154,25 @@ const votes = async (request: FastifyRequest, reply: FastifyReply) => {
 	}
 };
 
+const comments = async (request: FastifyRequest, reply: FastifyReply) => {
+	try {
+		await request.jwtVerify();
+		const payload = request.user as JwtPayload;
+		const params = profileParamsSchema.parse(request.params);
+		const query = paginationQuerySchema.parse(request.query);
+		const response = await getProfileComments({
+			currentStudentId: payload.sub,
+			profileStudentId: params.studentId,
+			page: query.page,
+			limit: query.limit,
+		});
+
+		return reply.send(response);
+	} catch (error) {
+		return handleProfileError(error, reply);
+	}
+};
+
 const update = async (request: FastifyRequest, reply: FastifyReply) => {
 	try {
 		await request.jwtVerify();
@@ -172,4 +192,4 @@ const update = async (request: FastifyRequest, reply: FastifyReply) => {
 	}
 };
 
-export { posts, show, showByStudent, update, votes };
+export { comments, posts, show, showByStudent, update, votes };

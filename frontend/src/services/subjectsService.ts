@@ -21,11 +21,11 @@ export const fetchSubjects = (page: number = 1, limit: number = 20) => {
   return request<PaginatedResponse<Subject>>(`/subjects?${params}`)
 }
 
-export const createSubject = (payload: { name: string; isActive?: boolean }) => {
+export const createSubject = (payload: { name: string; isActive?: boolean; courseIds?: string[] }) => {
   return request<Subject>('/subjects', { method: 'POST', body: JSON.stringify(payload) })
 }
 
-export const updateSubject = (id: string, payload: { name?: string; isActive?: boolean }) => {
+export const updateSubject = (id: string, payload: { name?: string; isActive?: boolean; courseIds?: string[] }) => {
   return request<Subject>(`/subjects/${id}`, { method: 'PUT', body: JSON.stringify(payload) })
 }
 

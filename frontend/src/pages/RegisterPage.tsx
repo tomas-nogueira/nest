@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Card, CardHeader } from '../components/ui/card'
 import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { Button } from '../components/ui/button'
+import { fetchCourses, type Course } from '../services/coursesService'
 
 const RegisterPage = () => {
 	const { signUp, isLoading } = useAuth()
@@ -12,12 +13,31 @@ const RegisterPage = () => {
 	const [name, setName] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
+	const [courses, setCourses] = useState<Course[]>([])
+	const [courseId, setCourseId] = useState('')
+	const [isLoadingCourses, setIsLoadingCourses] = useState(false)
+
+	useEffect(() => {
+		const loadCourses = async () => {
+			setIsLoadingCourses(true)
+
+			try {
+				const response = await fetchCourses(1, 100)
+				setCourses(response.data)
+				setCourseId(response.data[0]?.id ?? '')
+			} finally {
+				setIsLoadingCourses(false)
+			}
+		}
+
+		void loadCourses()
+	}, [])
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
 		try {
-			await signUp({ name, email, password })
+			await signUp({ name, email, password, courseId })
 			navigate('/dashboard', { replace: true })
 		} catch {
 			// Error toast is handled globally by request handler.
@@ -37,8 +57,8 @@ const RegisterPage = () => {
 					</div>
 				</CardHeader>
 
-				<form onSubmit={handleSubmit} className="mt-6">
-					<div className="space-y-4">
+				<div className="p-6">
+					<form onSubmit={handleSubmit} className="space-y-4">
 						<div>
 							<Label>Nome completo</Label>
 							<Input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome" />
@@ -50,20 +70,47 @@ const RegisterPage = () => {
 						</div>
 
 						<div>
+							<Label>Curso</Label>
+							<select
+								value={courseId}
+								onChange={(e) => setCourseId(e.target.value)}
+								disabled={isLoadingCourses || courses.length === 0}
+								className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-rose-600"
+							>
+								{courses.length === 0 ? (
+									<option value="">Carregando cursos...</option>
+								) : (
+									<>
+										<option value="">Selecione um curso</option>
+										{courses.map((course) => (
+											<option key={course.id} value={course.id}>
+												{course.name}
+											</option>
+										))}
+									</>
+								)}
+							</select>
+							{!isLoadingCourses && courses.length === 0 ? (
+								<p className="mt-2 text-sm text-slate-500">
+									Nenhum curso disponível. Peça para um administrador criar um curso antes de se registrar.
+								</p>
+							) : null}
+						</div>
+
+						<div>
 							<Label>Senha</Label>
 							<Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
 						</div>
 
-						<Button type="submit" className="h-11 w-full rounded-lg px-6 text-base bg-rose-600 text-white hover:bg-rose-700" disabled={isLoading}>
-							{isLoading ? 'Criando...' : 'Criar conta'}
+						<Button type="submit" className="w-full" disabled={isLoading || isLoadingCourses || !courseId}>
+							Criar conta
 						</Button>
 
 						<p className="text-center text-sm text-slate-500">
 							Já tem uma conta? <Link to="/login" className="text-rose-600 hover:underline">Entrar</Link>
 						</p>
-					</div>
-				</form>
-
+					</form>
+				</div>
 			</Card>
 		</div>
 	)

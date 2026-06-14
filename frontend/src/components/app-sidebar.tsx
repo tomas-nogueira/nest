@@ -1,6 +1,6 @@
 import { type ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Book, ChevronUp, LogOut, MessagesSquare, UserRound } from 'lucide-react';
+import { Book, ChevronUp, LogOut, Layers, MessagesSquare, UserRound } from 'lucide-react';
 import { Button } from './ui/button';
 import { UserAvatar } from './UserAvatar';
 import {
@@ -25,16 +25,21 @@ import {
 import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
-	{
-		title: 'Posts',
-		url: '/home',
-		icon: MessagesSquare,
-	},
-	{
-		title: 'Materias',
-		url: '/subjects',
-		icon: Book,
-	},
+  {
+    title: 'Posts',
+    url: '/home',
+    icon: MessagesSquare,
+  },
+  {
+    title: 'Cursos',
+    url: '/courses',
+    icon: Layers,
+  },
+  {
+    title: 'Matérias',
+    url: '/subjects',
+    icon: Book,
+  },
 ];
 
 const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {

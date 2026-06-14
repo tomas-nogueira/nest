@@ -3,6 +3,7 @@ import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { SubjectsPage } from '../pages/SubjectsPage';
+import { CoursesPage } from '../pages/CoursesPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProfilePage } from '../pages/ProfilePage';
@@ -21,7 +22,8 @@ const AppRoutes = () => {
 			<Route element={<ProtectedRoute />}>
 				<Route element={<ProtectedLayout />}>
 					<Route path="home" element={<DashboardPage />} />
-						<Route path="subjects" element={<SubjectsPage />} />
+				  <Route path="courses" element={<CoursesPage />} />		
+          <Route path="subjects" element={<SubjectsPage />} />
 					<Route path="profile" element={<ProfilePage />} />
 					<Route path="profile/:studentId" element={<ProfilePage />} />
 					<Route path="dashboard" element={<Navigate to="/home" replace />} />

@@ -25,7 +25,12 @@ import {
 } from './ui/sidebar';
 import { useAuth } from '../hooks/useAuth';
 
-const navItems = [
+const navItems: Array<{
+	title: string;
+	url: string;
+	icon: typeof MessagesSquare;
+	adminOnly?: boolean;
+}> = [
   {
     title: 'Posts',
     url: '/home',
@@ -40,11 +45,13 @@ const navItems = [
     title: 'Cursos',
     url: '/courses',
     icon: Layers,
+    adminOnly: true,
   },
   {
     title: 'Matérias',
     url: '/subjects',
     icon: Book,
+    adminOnly: true,
   },
 ];
 
@@ -56,6 +63,8 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
 		signOut();
 	};
 
+	const visibleNavItems = navItems.filter((item) => !item.adminOnly || user?.role === 'admin');
+
 	return (
 		<Sidebar variant="inset" collapsible="icon" {...props}>
 			<SidebarContent>
@@ -63,7 +72,7 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
 					<SidebarGroupLabel>Navegação</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{navItems.map((item) => {
+							{visibleNavItems.map((item) => {
 								const Icon = item.icon;
 								const isActive = location.pathname === item.url;
 

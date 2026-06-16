@@ -11,6 +11,7 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchResultsPage } from '../pages/SearchResultsPage';
 import { SubjectsPage } from '../pages/SubjectsPage';
+import { AdminRoute } from './AdminRoute';
 import { ProtectedRoute } from './ProtectedRoute';
 
 const AppRoutes = () => {
@@ -26,8 +27,10 @@ const AppRoutes = () => {
 				<Route element={<ProtectedLayout />}>
 					<Route path="home" element={<DashboardPage />} />
 					<Route path="explore" element={<ExplorePage />} />
-					<Route path="courses" element={<CoursesPage />} />
-					<Route path="subjects" element={<SubjectsPage />} />
+					<Route element={<AdminRoute />}>
+						<Route path="courses" element={<CoursesPage />} />
+						<Route path="subjects" element={<SubjectsPage />} />
+					</Route>
 					<Route path="profile" element={<ProfilePage />} />
 					<Route path="profile/:studentId" element={<ProfilePage />} />
 					<Route path="posts/:postId" element={<PostDetailPage />} />

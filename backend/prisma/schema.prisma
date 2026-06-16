@@ -19,19 +19,19 @@ enum StudentRole {
 
 // 1. Usuário (Estudante)
 model Student {
-  id           String  @id @default(uuid())
+  id           String      @id @default(uuid())
   name         String
-  email        String  @unique
+  email        String      @unique
   passwordHash String
   role         StudentRole @default(student)
   phone        String?
   bio          String?
-  avatarFileId String? @unique
-  hype         Int     @default(0) // Pode ser usado para gamificação do usuário
+  avatarFileId String?     @unique
+  hype         Int         @default(0) // Pode ser usado para gamificação do usuário
   courseId     String?
 
   // Relações
-  course Course? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  course     Course?     @relation(fields: [courseId], references: [id], onDelete: SetNull)
   avatarFile StoredFile? @relation("StudentAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
   posts      Post[]
   votes      Vote[]
@@ -94,12 +94,12 @@ model Post {
   subjectId String
 
   // Relações
-  student     Student      @relation(fields: [studentId], references: [id])
-  subject     Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  votes       Vote[]
-  comments    Comment[]
-  commentCount Int       @default(0)
+  student      Student      @relation(fields: [studentId], references: [id])
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+  votes        Vote[]
+  comments     Comment[]
+  commentCount Int          @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -116,11 +116,11 @@ model Comment {
   parentId  String?
   content   String
 
-  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [id])
-  parent  Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
-  votes   Vote[]
+  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student     Student      @relation(fields: [studentId], references: [id])
+  parent      Comment?     @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[]    @relation("CommentReplies")
+  votes       Vote[]
   attachments Attachment[]
 
   createdAt DateTime @default(now())
@@ -159,12 +159,12 @@ model StoredFile {
   createdAt    DateTime @default(now())
 
   attachments Attachment[]
-  avatarOwner Student? @relation("StudentAvatar")
+  avatarOwner Student?     @relation("StudentAvatar")
 }
 
 // 8. Sistema de Votos (Upvote/Downvote)
 model Vote {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String
   postId    String?
   commentId String?

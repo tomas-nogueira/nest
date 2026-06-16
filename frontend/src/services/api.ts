@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
+const AUTH_STORAGE_KEY = 'nest-backup:auth-session';
 
 type ApiErrorResponse = {
 	message?: unknown;
@@ -27,6 +28,27 @@ class ApiRequestError extends Error {
 const isNonEmptyString = (value: unknown): value is string => {
 	return typeof value === 'string' && value.trim().length > 0;
 };
+
+const getStoredAccessToken = () => {
+	if (typeof localStorage === 'undefined') {
+		return null;
+	}
+
+	const rawSession = localStorage.getItem(AUTH_STORAGE_KEY);
+
+	if (!rawSession) {
+		return null;
+	}
+
+	try {
+		const session = JSON.parse(rawSession) as { accessToken?: unknown };
+		return isNonEmptyString(session.accessToken) ? session.accessToken : null;
+	} catch {
+		return null;
+	}
+};
+
+const resolveAccessToken = (token?: string | null) => token ?? getStoredAccessToken();
 
 const extractMessageFromUnknown = (value: unknown): string | null => {
 	if (isNonEmptyString(value)) {
@@ -85,6 +107,7 @@ const request = async <T>(
 	token?: string | null,
 ): Promise<T> => {
 	try {
+		const accessToken = resolveAccessToken(token);
 		const isFormData = options.body instanceof FormData;
 		const hasBody = options.body !== undefined && options.body !== null;
 		const response = await fetch(`${API_URL}${path}`, {
@@ -92,7 +115,7 @@ const request = async <T>(
 			headers: {
 				...(hasBody && !isFormData ? { 'Content-Type': 'application/json' } : {}),
 				...(options.headers ?? {}),
-				...(token ? { Authorization: `Bearer ${token}` } : {}),
+				...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
 			},
 		});
 
@@ -127,11 +150,12 @@ const requestBlob = async (
 	token?: string | null,
 ): Promise<Blob> => {
 	try {
+		const accessToken = resolveAccessToken(token);
 		const response = await fetch(`${API_URL}${path}`, {
 			...options,
 			headers: {
 				...(options.headers ?? {}),
-				...(token ? { Authorization: `Bearer ${token}` } : {}),
+				...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
 			},
 		});
 

@@ -12,12 +12,18 @@ datasource db {
   provider = "postgresql"
 }
 
+enum StudentRole {
+  student
+  admin
+}
+
 // 1. Usuário (Estudante)
 model Student {
   id           String  @id @default(uuid())
   name         String
   email        String  @unique
   passwordHash String
+  role         StudentRole @default(student)
   phone        String?
   bio          String?
   avatarFileId String? @unique

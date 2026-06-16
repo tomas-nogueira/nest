@@ -17,6 +17,7 @@ const authUserSelect = {
 	id: true,
 	name: true,
 	email: true,
+	role: true,
 	phone: true,
 	bio: true,
 	avatarFileId: true,

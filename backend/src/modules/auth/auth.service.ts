@@ -24,6 +24,7 @@ const mapUser = (student: {
 	id: string;
 	name: string;
 	email: string;
+	role: "student" | "admin";
 	phone: string | null;
 	bio?: string | null;
 	avatarFileId?: string | null;
@@ -33,6 +34,7 @@ const mapUser = (student: {
 	id: student.id,
 	name: student.name,
 	email: student.email,
+	role: student.role,
 	phone: student.phone,
 	bio: student.bio ?? null,
 	avatarUrl: student.avatarFileId ? `/files/${student.avatarFileId}/preview` : null,
@@ -45,6 +47,7 @@ const buildAuthResponse = async (
 		id: string;
 		name: string;
 		email: string;
+		role: "student" | "admin";
 		phone: string | null;
 		bio?: string | null;
 		avatarFileId?: string | null;
@@ -53,7 +56,7 @@ const buildAuthResponse = async (
 	},
 	signToken: JwtSigner,
 ): Promise<AuthResponse> => {
-	const accessToken = await signToken({ sub: student.id, email: student.email });
+	const accessToken = await signToken({ sub: student.id, email: student.email, role: student.role });
 
 	return {
 		accessToken,
@@ -86,6 +89,7 @@ const registerStudent = async (input: RegisterInput, signToken: JwtSigner) => {
 			name: input.name,
 			email: input.email,
 			passwordHash,
+			role: "student",
 			phone: input.phone,
 			courseId: input.courseId,
 		},
@@ -123,6 +127,7 @@ const loginStudent = async (input: LoginInput, signToken: JwtSigner) => {
 			id: student.id,
 			name: student.name,
 			email: student.email,
+			role: student.role,
 			phone: student.phone,
 			bio: student.bio ?? null,
 			avatarFileId: student.avatarFileId ?? null,

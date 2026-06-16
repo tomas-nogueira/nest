@@ -73,12 +73,14 @@ const main = async () => {
 		update: {
 			name: "Admin",
 			passwordHash: await bcrypt.hash("admin123", 10),
+			role: "admin",
 			courseId: course.id,
 		},
 		create: {
 			name: "Admin",
 			email: "admin@gmail.com",
 			passwordHash: await bcrypt.hash("admin123", 10),
+			role: "admin",
 			courseId: course.id,
 		},
 	});

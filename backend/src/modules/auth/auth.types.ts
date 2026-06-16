@@ -1,7 +1,10 @@
+export type StudentRole = 'student' | 'admin';
+
 export type AuthUser = {
 	id: string;
 	name: string;
 	email: string;
+	role: StudentRole;
 	phone: string | null;
 	bio: string | null;
 	avatarUrl: string | null;
@@ -20,4 +23,5 @@ export type AuthResponse = {
 export type JwtPayload = {
 	sub: string;
 	email: string;
+	role: StudentRole;
 };

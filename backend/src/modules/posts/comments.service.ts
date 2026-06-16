@@ -4,7 +4,7 @@ import { prisma } from "../../lib/prisma";
 import { removeFile, removeStoredFilesFromProvider, uploadFile } from "../files/files.service";
 import { PostAuthorizationError, PostNotFoundError, PostValidationError } from "./posts.errors";
 import { ensurePostVisibleToStudent, mapPost, postInclude } from "./posts.service";
-import { applyAuthorUpvoteHype } from "./vote-hype.service";
+import { acquireVoteTargetLock, applyAuthorUpvoteHype } from "./vote-hype.service";
 
 type UploadedCommentFile = {
 	buffer: Buffer;
@@ -523,6 +523,12 @@ const voteOnComment = async (input: VoteCommentInput) => {
 		if (!comment || comment.postId !== input.postId) {
 			throw new PostNotFoundError("Comentario nao encontrado.");
 		}
+
+		await acquireVoteTargetLock(tx, {
+			targetType: "comment",
+			studentId: input.studentId,
+			commentId: input.commentId,
+		});
 
 		const previousVote = await tx.vote.findUnique({
 			where: {

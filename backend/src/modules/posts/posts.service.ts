@@ -8,7 +8,7 @@ import {
 	PostValidationError,
 	StudentCourseRequiredError,
 } from "./posts.errors";
-import { applyAuthorUpvoteHype } from "./vote-hype.service";
+import { acquireVoteTargetLock, applyAuthorUpvoteHype } from "./vote-hype.service";
 
 type UploadedPostFile = {
 	buffer: Buffer;
@@ -794,6 +794,12 @@ const voteOnPost = async (input: VoteInput) => {
 		if (!post) {
 			throw new PostNotFoundError("Post nao encontrado.");
 		}
+
+		await acquireVoteTargetLock(tx, {
+			targetType: "post",
+			studentId: input.studentId,
+			postId: input.postId,
+		});
 
 		const previousVote = await tx.vote.findUnique({
 			where: {

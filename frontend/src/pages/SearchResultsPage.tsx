@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { BookOpen, Clock, FileText, ImageIcon, Layers3, Search, UserRound } from 'lucide-react';
+import { HypeBadge } from '../components/HypeBadge';
 import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../hooks/useAuth';
 import { normalizeSearchQuery, readRecentSearches, saveRecentSearch } from '../lib/recentSearches';
@@ -64,6 +65,9 @@ const ResultCard = ({ result, token }: { result: SearchResult; token: string | n
 					<span className="rounded-full border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
 						{tabLabels[result.type]}
 					</span>
+					{result.type === 'user' && typeof result.hype === 'number' ? (
+						<HypeBadge hype={result.hype} compact iconSize={14} animateNumber={false} className="gap-0.5 py-0 pr-1.5 pl-0.5 text-xs" />
+					) : null}
 				</span>
 				<span className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">{result.description}</span>
 				{(result.type === 'post' || result.type === 'media') && result.post.attachments.length > 0 ? (

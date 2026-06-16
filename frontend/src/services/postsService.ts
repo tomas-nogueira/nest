@@ -52,6 +52,7 @@ export type AcademicPost = {
 		id: string;
 		name: string;
 		avatarUrl: string | null;
+		hype: number;
 	};
 	subject: Subject;
 	attachments: PostAttachment[];

@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Compass, Download, X } from 'lucide-react';
 import { ExploreEmptyState, ExploreErrorState, ExploreLoadingState } from '../components/explore/ExploreStates';
 import { RecentThemeCard, TrendingCourseCard, TrendSection } from '../components/explore/TrendCards';
+import { HypeBadge } from '../components/HypeBadge';
 import { PostCard, formatSize } from '../components/posts/PostCard';
 import { Button } from '../components/ui/button';
 import { Modal } from '../components/ui/modal';
+import { UserAvatar } from '../components/UserAvatar';
 import { useAuth } from '../hooks/useAuth';
 import { fetchExplore, type ExploreResponse } from '../services/exploreService';
 import {
@@ -38,6 +40,26 @@ const ExplorePage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [hasError, setHasError] = useState(false);
 	const [preview, setPreview] = useState<{ attachment: PostAttachment; url: string } | null>(null);
+	const trendingAuthors = useMemo(() => {
+		if (!explore) {
+			return [];
+		}
+
+		const authorsById = new Map<string, AcademicPost['author'] & { postsCount: number }>();
+
+		for (const post of [...explore.popularNow, ...explore.popularCourse.posts]) {
+			const current = authorsById.get(post.author.id);
+
+			authorsById.set(post.author.id, {
+				...post.author,
+				postsCount: (current?.postsCount ?? 0) + 1,
+			});
+		}
+
+		return [...authorsById.values()]
+			.sort((left, right) => right.hype - left.hype || right.postsCount - left.postsCount || left.name.localeCompare(right.name, 'pt-BR'))
+			.slice(0, 5);
+	}, [explore]);
 
 	const loadExplore = useCallback(async () => {
 		if (!accessToken) {
@@ -215,6 +237,36 @@ const ExplorePage = () => {
 								<div className="p-4 text-sm text-slate-500">Nenhum curso com atividade recente.</div>
 							) : (
 								explore.trendingCourses.map((course) => <TrendingCourseCard key={course.id} course={course} />)
+							)}
+						</TrendSection>
+
+						<TrendSection title="Autores em Alta" description="Usuarios com mais hype entre os destaques.">
+							{trendingAuthors.length === 0 ? (
+								<div className="p-4 text-sm text-slate-500">Nenhum autor em destaque ainda.</div>
+							) : (
+								<div className="divide-y divide-slate-100">
+									{trendingAuthors.map((author) => (
+										<Link
+											key={author.id}
+											to={`/profile/${author.id}`}
+											className="flex items-center gap-3 p-4 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+										>
+											<UserAvatar
+												name={author.name}
+												avatarUrl={author.avatarUrl}
+												token={accessToken}
+												className="size-9 shrink-0 text-xs"
+											/>
+											<span className="min-w-0 flex-1">
+												<span className="block truncate text-sm font-semibold text-slate-950">{author.name}</span>
+												<span className="block text-xs text-slate-500">
+													{author.postsCount} destaque{author.postsCount === 1 ? '' : 's'}
+												</span>
+											</span>
+											<HypeBadge hype={author.hype} compact iconSize={14} animateNumber={false} />
+										</Link>
+									))}
+								</div>
 							)}
 						</TrendSection>
 

@@ -348,6 +348,7 @@ const getSuggestions = async (input: SuggestionsInput) => {
 			description: item.description,
 			url: item.url,
 			...("avatarUrl" in item ? { avatarUrl: item.avatarUrl } : {}),
+			...("hype" in item ? { hype: item.hype } : {}),
 		}));
 
 	return { query, suggestions };

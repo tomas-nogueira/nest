@@ -11,6 +11,7 @@ export type SearchSuggestion = {
 	description: string;
 	url: string;
 	avatarUrl?: string | null;
+	hype?: number;
 };
 
 export type RecentSearchSuggestion = {

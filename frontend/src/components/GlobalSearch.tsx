@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, FileText, ImageIcon, Layers3, Loader2, Search, UserRound } from 'lucide-react';
 import { Button } from './ui/button';
+import { HypeBadge } from './HypeBadge';
 import { Input } from './ui/input';
 import { UserAvatar } from './UserAvatar';
 import { useAuth } from '../hooks/useAuth';
@@ -238,7 +239,12 @@ const GlobalSearch = () => {
 												</span>
 											)}
 											<span className="min-w-0 flex-1">
-												<span className="block truncate text-sm font-medium text-slate-950">{suggestion.title}</span>
+												<span className="flex min-w-0 items-center gap-2">
+													<span className="truncate text-sm font-medium text-slate-950">{suggestion.title}</span>
+													{suggestion.type === 'user' && typeof suggestion.hype === 'number' ? (
+														<HypeBadge hype={suggestion.hype} compact iconSize={14} animateNumber={false} className="gap-0.5 py-0 pr-1.5 pl-0.5 text-xs" />
+													) : null}
+												</span>
 												<span className="block truncate text-xs text-slate-500">{suggestion.description}</span>
 											</span>
 											<span className="shrink-0 rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600">

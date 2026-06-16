@@ -4,6 +4,7 @@ import { prisma } from "../../lib/prisma";
 import { removeFile, removeStoredFilesFromProvider, uploadFile } from "../files/files.service";
 import { PostAuthorizationError, PostNotFoundError, PostValidationError } from "./posts.errors";
 import { ensurePostVisibleToStudent, mapPost, postInclude } from "./posts.service";
+import { acquireVoteTargetLock, applyAuthorUpvoteHype } from "./vote-hype.service";
 
 type UploadedCommentFile = {
 	buffer: Buffer;
@@ -508,54 +509,82 @@ const deleteComment = async (input: DeleteCommentInput) => {
 
 const voteOnComment = async (input: VoteCommentInput) => {
 	await ensurePostVisibleToStudent(input.postId, input.studentId);
-	const comment = await prisma.comment.findUnique({
-		where: { id: input.commentId },
-		select: {
-			id: true,
-			postId: true,
-		},
-	});
 
-	if (!comment || comment.postId !== input.postId) {
-		throw new PostNotFoundError("Comentario nao encontrado.");
-	}
-
-	if (input.voteType === 0) {
-		await prisma.vote.deleteMany({
-			where: {
-				userId: input.studentId,
-				commentId: input.commentId,
-				postId: null,
+	const result = await prisma.$transaction(async (tx) => {
+		const comment = await tx.comment.findUnique({
+			where: { id: input.commentId },
+			select: {
+				id: true,
+				postId: true,
+				studentId: true,
 			},
 		});
-	} else {
-		await prisma.vote.upsert({
+
+		if (!comment || comment.postId !== input.postId) {
+			throw new PostNotFoundError("Comentario nao encontrado.");
+		}
+
+		await acquireVoteTargetLock(tx, {
+			targetType: "comment",
+			studentId: input.studentId,
+			commentId: input.commentId,
+		});
+
+		const previousVote = await tx.vote.findUnique({
 			where: {
 				userId_commentId: {
 					userId: input.studentId,
 					commentId: input.commentId,
 				},
 			},
-			update: {
-				vote_type: input.voteType,
-			},
-			create: {
-				userId: input.studentId,
-				postId: null,
+			select: { vote_type: true },
+		});
+		const previousVoteType = (previousVote?.vote_type ?? 0) as 1 | -1 | 0;
+
+		if (input.voteType === 0) {
+			await tx.vote.deleteMany({
+				where: {
+					userId: input.studentId,
+					commentId: input.commentId,
+					postId: null,
+				},
+			});
+		} else {
+			await tx.vote.upsert({
+				where: {
+					userId_commentId: {
+						userId: input.studentId,
+						commentId: input.commentId,
+					},
+				},
+				update: {
+					vote_type: input.voteType,
+				},
+				create: {
+					userId: input.studentId,
+					postId: null,
+					commentId: input.commentId,
+					vote_type: input.voteType,
+				},
+			});
+		}
+
+		await applyAuthorUpvoteHype(tx, {
+			authorStudentId: comment.studentId,
+			voterStudentId: input.studentId,
+			previousVoteType,
+			nextVoteType: input.voteType,
+		});
+
+		return tx.vote.aggregate({
+			where: {
 				commentId: input.commentId,
-				vote_type: input.voteType,
+				postId: null,
+			},
+			_sum: {
+				vote_type: true,
 			},
 		});
-	}
-
-	const result = await prisma.vote.aggregate({
-		where: {
-			commentId: input.commentId,
-			postId: null,
-		},
-		_sum: {
-			vote_type: true,
-		},
 	});
 
 	return {

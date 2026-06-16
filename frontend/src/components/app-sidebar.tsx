@@ -2,6 +2,7 @@ import { type ComponentProps } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Book, ChevronUp, Compass, LogOut, Layers, MessagesSquare, UserRound } from 'lucide-react';
 import { Button } from './ui/button';
+import { HypeBadge } from './HypeBadge';
 import { UserAvatar } from './UserAvatar';
 import {
 	DropdownMenu,
@@ -106,6 +107,9 @@ const AppSidebar = ({ ...props }: ComponentProps<typeof Sidebar>) => {
 											{user?.name ?? 'Usuário logado'}
 										</span>
 									</div>
+									{typeof user?.hype === 'number' ? (
+										<HypeBadge hype={user.hype} compact iconSize={12} animateNumber={false} className="group-data-[collapsible=icon]:hidden" />
+									) : null}
 									<ChevronUp className="ml-auto size-3.5 text-red-700/50 group-data-[collapsible=icon]:hidden" />
 								</SidebarMenuButton>
 							</SidebarMenuItem>

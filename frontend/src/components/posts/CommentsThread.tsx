@@ -287,7 +287,12 @@ const CommentItem = ({
 			<article className="rounded-lg border border-slate-200 bg-white p-4">
 				<header className="flex items-start justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-2">
-						<UserAvatar name={comment.author.name} avatarUrl={comment.author.avatarUrl} token={token} className="size-7 shrink-0 text-[11px]" />
+						<UserAvatar
+							name={comment.author.name}
+							avatarUrl={comment.author.avatarUrl}
+							token={token}
+							className="size-7 shrink-0 text-[11px]"
+						/>
 						<div className="min-w-0">
 							<p className="truncate text-sm font-semibold text-slate-900">{comment.author.name}</p>
 							<time className="text-xs text-slate-500">{formatCommentDate(comment.createdAt)}</time>

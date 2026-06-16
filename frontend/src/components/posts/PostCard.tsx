@@ -212,7 +212,7 @@ const PostCard = ({ post, accessToken, currentUserId, onEdit, onDelete, onVote, 
 								name={post.author.name}
 								avatarUrl={post.author.avatarUrl}
 								token={accessToken}
-								className="size-7 shrink-0 text-[11px]"
+								className="size-9 shrink-0 text-xs"
 							/>
 							<span className="truncate">{post.author.name}</span>
 						</Link>

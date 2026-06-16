@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { adminDashboardRoutes } from "../modules/admin-dashboard/admin-dashboard.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
 import { coursesRoutes } from "../modules/courses/courses.routes";
 import { exploreRoutes } from "../modules/explore/explore.routes";
@@ -11,6 +12,7 @@ import { studentsRoutes } from "../modules/students/students.routes";
 import { subjectsRoutes } from "../modules/subjects/subjects.routes";
 
 const registerRoutes = async (app: FastifyInstance) => {
+	await app.register(adminDashboardRoutes);
 	await app.register(authRoutes);
 	await app.register(filesRoutes);
 	await app.register(healthRoutes);

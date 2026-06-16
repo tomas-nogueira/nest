@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
+import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { CoursesPage } from '../pages/CoursesPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { ExplorePage } from '../pages/ExplorePage';
@@ -28,6 +29,7 @@ const AppRoutes = () => {
 					<Route path="home" element={<DashboardPage />} />
 					<Route path="explore" element={<ExplorePage />} />
 					<Route element={<AdminRoute />}>
+						<Route path="admin/dashboard" element={<AdminDashboardPage />} />
 						<Route path="courses" element={<CoursesPage />} />
 						<Route path="subjects" element={<SubjectsPage />} />
 					</Route>

@@ -15,6 +15,11 @@ const pageHeaders = [
 		description: 'Tendências e descobertas',
 	},
 	{
+		matches: (pathname: string) => pathname === '/admin/dashboard',
+		title: 'Admin',
+		description: 'Dashboard da plataforma',
+	},
+	{
 		matches: (pathname: string) => pathname === '/courses',
 		title: 'Cursos',
 		description: 'Catálogo acadêmico',

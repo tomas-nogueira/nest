@@ -49,7 +49,7 @@ const LoginPage = () => {
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
-								placeholder="nome@empresa.com"
+								placeholder="nome@mail.com"
 							/>
 						</div>
 

@@ -3,9 +3,25 @@ import { request } from './api'
 export type Subject = {
   id: string
   name: string
+  nameKey: string
   isActive: boolean
   createdAt: string
   updatedAt: string
+  courses?: Array<{
+    id: string
+    subjectId: string
+    courseId: string
+    subjectNameKey: string
+    course: {
+      id: string
+      name: string
+      nameKey: string
+      isActive: boolean
+      isSystem: boolean
+      createdAt: string
+      updatedAt: string
+    }
+  }>
 }
 
 export type PaginatedResponse<T> = {
@@ -16,8 +32,13 @@ export type PaginatedResponse<T> = {
   pages: number
 }
 
-export const fetchSubjects = (page: number = 1, limit: number = 20) => {
+export const fetchSubjects = (page: number = 1, limit: number = 20, search?: string) => {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+
+  if (search?.trim()) {
+    params.set('search', search.trim())
+  }
+
   return request<PaginatedResponse<Subject>>(`/subjects?${params}`)
 }
 

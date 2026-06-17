@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Search } from 'lucide-react'
 import { Card, CardHeader, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -16,35 +17,47 @@ const SubjectsPage = () => {
   const [editing, setEditing] = useState<Subject | null>(null)
   const [name, setName] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState('')
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState<PaginatedResponse<Subject> | null>(null)
   const LIMIT = 20
 
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
-      const data = await fetchCourses(1, 20)
-      setCourses(data.data)
+      const data = await fetchCourses(1, 100)
+      setCourses(data.data.filter((course) => course.isActive && !course.isSystem))
     } catch {
       // error handled globally by request
     }
-  }
+  }, [])
 
-  const load = async (pageNum: number) => {
+  const load = useCallback(async (pageNum: number, searchValue = '') => {
     setLoading(true)
     try {
-      const data = await fetchSubjects(pageNum, LIMIT)
+      const data = await fetchSubjects(pageNum, LIMIT, searchValue)
       setSubjects(data.data)
       setPagination(data)
       setPage(pageNum)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    void loadCourses()
-    void load(1)
-  }, [])
+    const timeoutId = window.setTimeout(() => {
+      void loadCourses()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [loadCourses])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void load(1, search)
+    }, 250)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [load, search])
 
   const openNew = () => {
     setEditing(null)
@@ -68,7 +81,7 @@ const SubjectsPage = () => {
         await createSubject({ name, courseIds: selectedCourseId ? [selectedCourseId] : [] })
       }
       setIsModalOpen(false)
-      await load(1)
+      await load(1, search)
     } catch {
       // error handled globally by request
     }
@@ -78,7 +91,7 @@ const SubjectsPage = () => {
     if (!confirm('Tem certeza que deseja excluir essa matéria?')) return
     try {
       await deleteSubject(id)
-      await load(page)
+      await load(page, search)
     } catch {
       // handled globally
     }
@@ -86,8 +99,19 @@ const SubjectsPage = () => {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 mb-6 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-2xl font-semibold text-slate-900">Matérias</h1>
+        <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+          <div className="relative min-w-0 sm:w-80">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Pesquisar materia ou curso"
+              className="h-10 rounded-lg border-slate-200 bg-white py-2 pr-3 pl-9 text-sm"
+            />
+          </div>
         <Button
           onClick={openNew}
           disabled={courses.length === 0}
@@ -95,6 +119,7 @@ const SubjectsPage = () => {
         >
           + Nova Matéria
         </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -154,7 +179,7 @@ const SubjectsPage = () => {
           {pagination && pagination.pages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-6">
               <Button
-                onClick={() => load(page - 1)}
+                onClick={() => load(page - 1, search)}
                 disabled={page === 1}
                 variant="outline"
               >
@@ -164,7 +189,7 @@ const SubjectsPage = () => {
                 Página {page} de {pagination.pages} ({pagination.total} matérias)
               </span>
               <Button
-                onClick={() => load(page + 1)}
+                onClick={() => load(page + 1, search)}
                 disabled={page === pagination.pages}
                 variant="outline"
               >

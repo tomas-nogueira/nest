@@ -47,7 +47,9 @@ model Student {
 model Course {
   id       String  @id @default(uuid())
   name     String
+  nameKey  String
   isActive Boolean @default(true)
+  isSystem Boolean @default(false)
 
   // Relações
   students Student[]
@@ -55,12 +57,15 @@ model Course {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([nameKey, isActive])
 }
 
 // 3. Matéria (Disciplina)
 model Subject {
   id       String  @id @default(uuid())
   name     String
+  nameKey  String
   isActive Boolean @default(true)
 
   // Relações
@@ -73,14 +78,16 @@ model Subject {
 
 // 4. Tabela Intermediária (Muitos-para-Muitos entre Curso e Matéria)
 model SubjectCourse {
-  id        String @id @default(uuid())
-  subjectId String
-  courseId  String
+  id             String @id @default(uuid())
+  subjectId      String
+  courseId       String
+  subjectNameKey String
 
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([subjectId, courseId]) // Garante que não haja duplicatas da mesma matéria no mesmo curso
+  @@unique([courseId, subjectNameKey])
   @@index([courseId])
 }
 

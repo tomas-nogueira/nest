@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Clock, FileText, ImageIcon, Layers3, Loader2, Search, UserRound } from 'lucide-react';
 import { Button } from './ui/button';
 import { HypeBadge } from './HypeBadge';
@@ -162,6 +162,14 @@ const GlobalSearch = () => {
 		navigate(suggestion.url);
 	};
 
+	const renderSuggestionLabel = (suggestion: Suggestion) => {
+		return (
+			<span className="shrink-0 rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600">
+				{typeLabels[suggestion.type]}
+			</span>
+		);
+	};
+
 	return (
 		<div ref={wrapperRef} className="relative w-full min-w-0 md:max-w-xl">
 			<form className="relative" role="search" onSubmit={handleSubmit}>
@@ -219,6 +227,39 @@ const GlobalSearch = () => {
 							{suggestions.map((suggestion) => {
 								const Icon = typeIcons[suggestion.type];
 
+								if (suggestion.type === 'course') {
+									return (
+										<li key={`${suggestion.type}-${suggestion.id}`} className="flex items-center gap-2 px-4 py-3 transition hover:bg-slate-50">
+											<button
+												type="button"
+												className="flex min-w-0 flex-1 items-center gap-3 text-left focus:outline-none"
+												onClick={() => handleSuggestionClick(suggestion)}
+											>
+												<span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+													<Icon className="size-4" />
+												</span>
+												<span className="min-w-0 flex-1">
+													<span className="block truncate text-sm font-medium text-slate-950">{suggestion.title}</span>
+													<span className="block truncate text-xs text-slate-500">{suggestion.description}</span>
+												</span>
+												<span className="shrink-0 rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600">
+													Curso
+												</span>
+											</button>
+											<Link
+												to={suggestion.filterUrl ?? `/home?courseId=${suggestion.id}`}
+												className="shrink-0 rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800"
+												onClick={() => {
+													saveRecentSearch(normalizedQuery || suggestion.title);
+													setIsOpen(false);
+												}}
+											>
+												Filtro
+											</Link>
+										</li>
+									);
+								}
+
 								return (
 									<li key={`${suggestion.type}-${suggestion.id}`}>
 										<button
@@ -247,9 +288,7 @@ const GlobalSearch = () => {
 												</span>
 												<span className="block truncate text-xs text-slate-500">{suggestion.description}</span>
 											</span>
-											<span className="shrink-0 rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600">
-												{typeLabels[suggestion.type]}
-											</span>
+											{renderSuggestionLabel(suggestion)}
 										</button>
 									</li>
 								);

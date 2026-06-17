@@ -48,12 +48,15 @@ model Course {
   id       String  @id @default(uuid())
   name     String
   nameKey  String
+  bio      String?
+  avatarFileId String? @unique
   isActive Boolean @default(true)
   isSystem Boolean @default(false)
 
   // Relações
   students Student[]
   subjects SubjectCourse[]
+  avatarFile StoredFile? @relation("CourseAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -167,6 +170,7 @@ model StoredFile {
 
   attachments Attachment[]
   avatarOwner Student?     @relation("StudentAvatar")
+  courseAvatarOwner Course? @relation("CourseAvatar")
 }
 
 // 8. Sistema de Votos (Upvote/Downvote)

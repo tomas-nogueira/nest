@@ -7,6 +7,11 @@ const courseQuerySchema = z.object({
   includeSubjects: z.enum(['true', 'false']).optional(),
 })
 
+const courseProfileListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1, 'Pagina invalida.').default(1),
+  limit: z.coerce.number().int().min(1, 'Limite invalido.').max(50, 'Use ate 50 itens por pagina.').default(10),
+})
+
 const courseParamsSchema = z.object({
   id: z.string().uuid('Curso invalido.'),
 })
@@ -18,7 +23,13 @@ const createCourseSchema = z.object({
 
 const updateCourseSchema = z.object({
   name: z.string().trim().min(2, 'O nome do curso deve ter no minimo 2 caracteres.').max(120, 'O nome do curso deve ter ate 120 caracteres.').optional(),
+  bio: z.string().trim().max(280, 'A bio do curso deve ter ate 280 caracteres.').optional(),
   isActive: z.boolean().optional(),
 })
 
-export { courseParamsSchema, courseQuerySchema, createCourseSchema, updateCourseSchema }
+const updateCourseProfileSchema = z.object({
+  name: z.string().trim().min(2, 'O nome do curso deve ter no minimo 2 caracteres.').max(120, 'O nome do curso deve ter ate 120 caracteres.'),
+  bio: z.string().trim().max(280, 'A bio do curso deve ter ate 280 caracteres.').optional(),
+})
+
+export { courseParamsSchema, courseProfileListQuerySchema, courseQuerySchema, createCourseSchema, updateCourseProfileSchema, updateCourseSchema }

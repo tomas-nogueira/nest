@@ -905,9 +905,18 @@ const ProfilePage = () => {
               {profile.user.bio || "Sem bio por enquanto."}
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
-              <span className="rounded-full border border-slate-200 px-3 py-1 text-slate-700">
-                Curso: {profile.user.course?.name ?? "Nao informado"}
-              </span>
+              {profile.user.course ? (
+                <Link
+                  to={`/courses/${profile.user.course.id}`}
+                  className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                >
+                  Curso: {profile.user.course.name}
+                </Link>
+              ) : (
+                <span className="rounded-full border border-slate-200 px-3 py-1 text-slate-700">
+                  Curso: Nao informado
+                </span>
+              )}
               <span className="rounded-full border border-slate-200 px-3 py-1 text-slate-700">
                 {profile.summary.postsCount} posts
               </span>

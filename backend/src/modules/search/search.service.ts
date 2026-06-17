@@ -161,7 +161,8 @@ const searchCourses = async (query: string, limit: number) => {
 		id: course.id,
 		title: course.name,
 		description: `${course._count.subjects} disciplinas - ${course._count.students} estudantes`,
-		url: `/home?courseId=${course.id}`,
+		url: `/courses/${course.id}`,
+		filterUrl: `/home?courseId=${course.id}`,
 		studentsCount: course._count.students,
 		subjectsCount: course._count.subjects,
 		score: getTextScore(query, [course.name]),
@@ -347,6 +348,7 @@ const getSuggestions = async (input: SuggestionsInput) => {
 			title: item.title,
 			description: item.description,
 			url: item.url,
+			...("filterUrl" in item ? { filterUrl: item.filterUrl } : {}),
 			...("avatarUrl" in item ? { avatarUrl: item.avatarUrl } : {}),
 			...("hype" in item ? { hype: item.hype } : {}),
 		}));

@@ -42,6 +42,43 @@ const normalizeTab = (value: string | null): ResultsTab => {
 const ResultCard = ({ result, token }: { result: SearchResult; token: string | null }) => {
 	const Icon = tabIcons[result.type];
 
+	if (result.type === 'course') {
+		return (
+			<article className="flex gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:border-red-200 hover:shadow-md">
+				<Link
+					to={result.url}
+					className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+					aria-label={`Abrir pagina do curso ${result.title}`}
+				>
+					<Icon className="size-5" />
+				</Link>
+				<span className="min-w-0 flex-1">
+					<span className="flex flex-wrap items-center gap-2">
+						<Link
+							to={result.url}
+							className="truncate text-base font-semibold text-slate-950 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
+						>
+							{result.title}
+						</Link>
+						<Link
+							to={result.url}
+							className="rounded-full border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+						>
+							Curso
+						</Link>
+						<Link
+							to={result.filterUrl ?? `/home?courseId=${result.id}`}
+							className="rounded-full border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800"
+						>
+							Filtro
+						</Link>
+					</span>
+					<span className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">{result.description}</span>
+				</span>
+			</article>
+		);
+	}
+
 	return (
 		<Link
 			to={result.url}

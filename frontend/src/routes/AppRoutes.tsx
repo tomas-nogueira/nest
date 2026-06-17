@@ -3,6 +3,7 @@ import { ProtectedLayout } from '../layouts/ProtectedLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { CoursesPage } from '../pages/CoursesPage';
+import { CourseProfilePage } from '../pages/CourseProfilePage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { ExplorePage } from '../pages/ExplorePage';
 import { LoginPage } from '../pages/LoginPage';
@@ -35,6 +36,7 @@ const AppRoutes = () => {
 					</Route>
 					<Route path="profile" element={<ProfilePage />} />
 					<Route path="profile/:studentId" element={<ProfilePage />} />
+					<Route path="courses/:courseId" element={<CourseProfilePage />} />
 					<Route path="posts/:postId" element={<PostDetailPage />} />
 					<Route path="search" element={<SearchResultsPage />} />
 					<Route path="dashboard" element={<Navigate to="/home" replace />} />

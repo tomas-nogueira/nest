@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { BookOpen, Plus, Search } from 'lucide-react'
 import { Card, CardHeader, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
@@ -211,6 +211,9 @@ const CoursesPage = () => {
                     </div>
                     {!course.isSystem ? (
                       <div className="flex shrink-0 items-center gap-2">
+                        <Button asChild size="sm" variant="outline" className="hover:border-red-200 hover:bg-red-50 hover:text-red-700">
+                          <Link to={`/courses/${course.id}`}>Perfil</Link>
+                        </Button>
                         <Button size="sm" variant="ghost" onClick={() => openEditCourse(course)} className="hover:bg-blue-50 hover:text-blue-700">
                           Editar
                         </Button>

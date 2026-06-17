@@ -655,5 +655,16 @@ const listStudentComments = async (input: {
 	};
 };
 
-export { createComment, deleteComment, listComments, listStudentComments, updateComment, voteOnComment };
+export {
+	commentInclude,
+	createComment,
+	deleteComment,
+	getCommentMetrics,
+	listComments,
+	listStudentComments,
+	mapComment,
+	updateComment,
+	voteOnComment,
+};
+export type { CommentWithAuthor };
 export type { UploadedCommentFile };

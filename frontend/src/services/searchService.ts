@@ -10,6 +10,7 @@ export type SearchSuggestion = {
 	title: string;
 	description: string;
 	url: string;
+	filterUrl?: string;
 	avatarUrl?: string | null;
 	hype?: number;
 };
@@ -24,7 +25,7 @@ export type RecentSearchSuggestion = {
 
 export type SearchResult =
 	| (SearchSuggestion & { type: 'user'; avatarUrl?: string | null; hype?: number })
-	| (SearchSuggestion & { type: 'course'; studentsCount?: number; subjectsCount?: number })
+	| (SearchSuggestion & { type: 'course'; filterUrl?: string; studentsCount?: number; subjectsCount?: number })
 	| (SearchSuggestion & { type: 'subject'; postsCount?: number; coursesCount?: number })
 	| (SearchSuggestion & { type: 'post' | 'media'; post: AcademicPost });
 

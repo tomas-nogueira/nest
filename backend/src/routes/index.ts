@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { adminDashboardRoutes } from "../modules/admin-dashboard/admin-dashboard.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
 import { coursesRoutes } from "../modules/courses/courses.routes";
+import { changelogRoutes } from "../modules/changelog/changelog.routes";
 import { exploreRoutes } from "../modules/explore/explore.routes";
 import { filesRoutes } from "../modules/files/files.routes";
 import { healthRoutes } from "../modules/health/health.routes";
@@ -22,6 +23,7 @@ const registerRoutes = async (app: FastifyInstance) => {
 	await app.register(studentsRoutes);
 	await app.register(subjectsRoutes);
 	await app.register(coursesRoutes);
+	await app.register(changelogRoutes);
 	await app.register(exploreRoutes);
 };
 

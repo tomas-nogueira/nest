@@ -36,6 +36,7 @@ model Student {
   posts      Post[]
   votes      Vote[]
   comments   Comment[]
+  changeLogs ChangeLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,18 +46,18 @@ model Student {
 
 // 2. Curso
 model Course {
-  id       String  @id @default(uuid())
-  name     String
-  nameKey  String
-  bio      String?
+  id           String  @id @default(uuid())
+  name         String
+  nameKey      String
+  bio          String?
   avatarFileId String? @unique
-  isActive Boolean @default(true)
-  isSystem Boolean @default(false)
+  isActive     Boolean @default(true)
+  isSystem     Boolean @default(false)
 
   // Relações
-  students Student[]
-  subjects SubjectCourse[]
-  avatarFile StoredFile? @relation("CourseAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
+  students   Student[]
+  subjects   SubjectCourse[]
+  avatarFile StoredFile?     @relation("CourseAvatar", fields: [avatarFileId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -168,9 +169,9 @@ model StoredFile {
   size         Int
   createdAt    DateTime @default(now())
 
-  attachments Attachment[]
-  avatarOwner Student?     @relation("StudentAvatar")
-  courseAvatarOwner Course? @relation("CourseAvatar")
+  attachments       Attachment[]
+  avatarOwner       Student?     @relation("StudentAvatar")
+  courseAvatarOwner Course?      @relation("CourseAvatar")
 }
 
 // 8. Sistema de Votos (Upvote/Downvote)
@@ -192,4 +193,17 @@ model Vote {
   @@index([postId])
   @@index([commentId])
   @@index([userId, createdAt])
+}
+
+// 9. Histórico de mudanças
+model ChangeLog {
+  id              String   @id @default(uuid())
+  userId          String
+  author          Student  @relation(fields: [userId], references: [id])
+  title           String
+  description     String
+  publicationDate DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([publicationDate])
 }

@@ -5,6 +5,7 @@ import {
   Compass,
   Layers,
   LogOut,
+  Megaphone,
   MessagesSquare,
   UserRound,
 } from "lucide-react";
@@ -44,6 +45,12 @@ const navItems: Array<{
     title: "Posts",
     url: "/home",
     icon: MessagesSquare,
+  },
+  {
+    title: "Novidades",
+    url: "/whats-new",
+    icon: Megaphone,
+    adminOnly: false,
   },
   {
     title: "Explorar",

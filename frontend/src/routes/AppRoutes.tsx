@@ -13,6 +13,7 @@ import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 import { SearchResultsPage } from '../pages/SearchResultsPage';
 import { SubjectsPage } from '../pages/SubjectsPage';
+import { WhatsNewPage } from '../pages/WhatsNewPage';
 import { AdminRoute } from './AdminRoute';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -29,6 +30,7 @@ const AppRoutes = () => {
 				<Route element={<ProtectedLayout />}>
 					<Route path="home" element={<DashboardPage />} />
 					<Route path="explore" element={<ExplorePage />} />
+					<Route path="whats-new" element={<WhatsNewPage />} />
 					<Route element={<AdminRoute />}>
 						<Route path="admin/dashboard" element={<AdminDashboardPage />} />
 						<Route path="courses" element={<CoursesPage />} />

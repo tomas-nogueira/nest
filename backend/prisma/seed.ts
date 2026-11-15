@@ -88,6 +88,58 @@ const linkSubjectToCourse = async (courseId: string, subjectId: string, subjectN
   });
 };
 
+const getOrCreateAdmin = async (courseId: string) => {
+  const existingAdmin = await prisma.student.findUnique({
+    where: {
+      email: "admin@gmail.com",
+    },
+  });
+
+  if (existingAdmin) {
+    return existingAdmin;
+  }
+
+  return prisma.student.create({
+    data: {
+      name: "Admin",
+      email: "admin@gmail.com",
+      passwordHash: await bcrypt.hash("admin123", 10),
+      role: "admin",
+      courseId,
+    },
+  });
+};
+
+const ensureDefaultChangeLog = async (adminId: string) => {
+  const title = "Bem-vindo às Novidades do NEST";
+  const description =
+    "Bem-vindo à página Novidades! Aqui você pode acompanhar o histórico de mudanças, melhorias e novos recursos do NEST. Administradores também podem publicar, editar e excluir novidades por esta página.";
+  const publicationDate = new Date();
+  const defaultChangeLog = await prisma.changeLog.findFirst({
+    where: {
+      userId: adminId,
+      title,
+    },
+    select: { id: true },
+  });
+
+  if (defaultChangeLog) {
+    return prisma.changeLog.update({
+      where: { id: defaultChangeLog.id },
+      data: { description, publicationDate },
+    });
+  }
+
+  return prisma.changeLog.create({
+    data: {
+      userId: adminId,
+      title,
+      description,
+      publicationDate,
+    },
+  });
+};
+
 const main = async () => {
   const defaultCourse = await getOrCreateCourseByName("Sistemas de Informação");
   const defaultSubject = await getOrCreateSubjectByName("Algoritmos");
@@ -97,25 +149,10 @@ const main = async () => {
   const systemSubject = await getOrCreateSubjectByName("Geral");
   await linkSubjectToCourse(systemCourse.id, systemSubject.id, systemSubject.nameKey);
 
-  const existingAdmin = await prisma.student.findUnique({
-    where: {
-      email: "admin@gmail.com",
-    },
-  });
+  const admin = await getOrCreateAdmin(defaultCourse.id);
+  await ensureDefaultChangeLog(admin.id);
 
-  if (!existingAdmin) {
-    await prisma.student.create({
-      data: {
-        name: "Admin",
-        email: "admin@gmail.com",
-        passwordHash: await bcrypt.hash("admin123", 10),
-        role: "admin",
-        courseId: defaultCourse.id,
-      },
-    });
-  }
-
-  console.info("Seed concluido: cursos, materias obrigatorias e usuario admin garantidos.");
+  console.info("Seed concluído: cursos, matérias obrigatórias, usuário admin e novidade padrão garantidos.");
 };
 
 main()
